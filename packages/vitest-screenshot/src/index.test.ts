@@ -5,6 +5,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { type Comparator, extendMatchers, pixelmatchComparator, type RgbaImage } from './index.js';
 import { distortion, metricsComparator, ssim } from './metrics.js';
 
+declare module './index.js' {
+  interface ComparatorRegistry {
+    'top-left': { tolerance?: number };
+    silent: Record<string, unknown>;
+  }
+}
+
 extendMatchers();
 
 const solid = (w: number, h: number, rgba: number[]): RgbaImage => ({
@@ -264,7 +271,7 @@ describe('configuration', () => {
       const d = Math.abs(reference.data[0]! - actual.data[0]!);
       return { pass: d <= (options.tolerance ?? 0), diff: null, message: `red channel off by ${d}` };
     };
-    extendMatchers({ comparators: { 'top-left': topLeft as Comparator<never>, silent } });
+    extendMatchers({ comparators: { 'top-left': topLeft, silent } });
     try {
       const opts = { baselineDir: dir, comparatorName: 'top-left' };
       await expect(solid(1, 1, [250, 0, 0, 255])).toMatchScreenshot(solid(1, 1, [255, 0, 0, 255]), {

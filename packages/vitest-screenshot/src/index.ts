@@ -41,11 +41,24 @@ export type PixelmatchOptions = NonNullable<Parameters<typeof pixelmatch>[5]> & 
   allowedMismatchedPixels?: number;
 };
 
-/** Which comparator judges the images. `pixelmatch` (default) and `metrics` are built in; others come from `extendMatchers({ comparators })`. */
+/** Comparator names and their options. Augment this interface when registering a custom comparator. */
+export interface ComparatorRegistry {
+  pixelmatch: PixelmatchOptions;
+  metrics: MetricsOptions;
+}
+
+type ComparatorName = Extract<keyof ComparatorRegistry, string>;
+type ComparatorOptions<Name extends ComparatorName> = Extract<ComparatorRegistry[Name], object>;
+
+/** Which registered comparator judges the images. `pixelmatch` is the default. */
 export type ComparatorSelection =
-  | { comparatorName?: 'pixelmatch'; comparatorOptions?: PixelmatchOptions }
-  | { comparatorName: 'metrics'; comparatorOptions?: MetricsOptions }
-  | { comparatorName: string; comparatorOptions?: Record<string, unknown> };
+  | {
+      [Name in ComparatorName]: {
+        comparatorName: Name;
+        comparatorOptions?: ComparatorOptions<Name>;
+      };
+    }[ComparatorName]
+  | { comparatorName?: undefined; comparatorOptions?: ComparatorOptions<ComparatorName> };
 
 export type ScreenshotOptions = ComparatorSelection & {
   /** Directory relative reference paths and diff images live in. Default: `__screenshots__` beside the test file. */
@@ -55,7 +68,9 @@ export type ScreenshotOptions = ComparatorSelection & {
 };
 
 /** Defaults for every assertion plus custom comparators, like `test.browser.expect.toMatchScreenshot` in Vitest config. */
-export type ScreenshotConfig = ComparatorSelection & { comparators?: Record<string, Comparator<never>> };
+export type ScreenshotConfig = ComparatorSelection & {
+  comparators?: { [Name in ComparatorName]?: Comparator<ComparatorOptions<Name>> };
+};
 
 declare module 'vitest' {
   interface Assertion {
@@ -112,11 +127,11 @@ export const pixelmatchComparator: Comparator<PixelmatchOptions> = (
 };
 
 export function extendMatchers(config: ScreenshotConfig = {}): void {
-  const comparators: Record<string, Comparator<never>> = {
-    pixelmatch: pixelmatchComparator as Comparator<never>,
-    metrics: metricsComparator as Comparator<never>,
+  const comparators = {
+    pixelmatch: pixelmatchComparator,
+    metrics: metricsComparator,
     ...config.comparators,
-  };
+  } as unknown as Record<string, Comparator>;
   expect.extend({
     async toMatchScreenshot(received: ImageSource, reference: Reference, options: ScreenshotOptions = {}) {
       if (this.isNot) throw new Error('`.not.toMatchScreenshot()` is not supported');
@@ -153,7 +168,7 @@ export function extendMatchers(config: ScreenshotConfig = {}): void {
         ...inherited,
         ...options.comparatorOptions,
         createDiff: true,
-      } as never);
+      });
       const stem = join(dir, file ? basename(file, extname(file)) : label.replace(/[^\w-]+/g, '_'));
       const seeDiff = !pass && diff ? `; see ${stem}.diff.png` : '';
       if (!pass)
