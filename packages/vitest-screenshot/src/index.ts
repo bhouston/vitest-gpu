@@ -4,6 +4,7 @@ import pixelmatch from 'pixelmatch';
 import sharp, { type FormatEnum } from 'sharp';
 import { expect } from 'vitest';
 import { metricsComparator, type MetricsOptions } from './metrics.js';
+import { resolveScreenshotUpdateState } from './update-policy.js';
 
 export type { Metric, MetricsOptions } from './metrics.js';
 
@@ -50,7 +51,7 @@ export type ComparatorSelection =
 export type ScreenshotOptions = ComparatorSelection & {
   /** Directory relative reference paths and diff images live in. Default: `__screenshots__` beside the test file. */
   baselineDir?: string;
-  /** Overwrite the baseline file. Default: `UPDATE_SCREENSHOTS` env var is set. */
+  /** Override Vitest's snapshot update mode. `true` creates/overwrites; `false` prevents both. */
   update?: boolean;
 };
 
@@ -128,12 +129,18 @@ export function extendMatchers(config: ScreenshotConfig = {}): void {
         if (!extname(reference))
           throw new Error(`reference "${reference}" needs an image extension, e.g. "${reference}.png"`);
         file = isAbsolute(reference) ? reference : join(dir, reference);
-        const update = options.update ?? Boolean(process.env.UPDATE_SCREENSHOTS);
-        if (update || (!existsSync(file) && !process.env.CI)) {
+        const exists = existsSync(file);
+        const update = resolveScreenshotUpdateState(
+          this.snapshotState,
+          options.update,
+          Boolean(process.env.UPDATE_SCREENSHOTS),
+          Boolean(process.env.CI),
+        );
+        if (update === 'all' || (update === 'new' && !exists)) {
           await writeImage(file, actual);
           return result(true, `wrote baseline ${file}`);
         }
-        if (!existsSync(file)) return result(false, `missing baseline ${file}; run with UPDATE_SCREENSHOTS=1`);
+        if (!exists) return result(false, `missing baseline ${file}; run with UPDATE_SCREENSHOTS=1 or vitest -u`);
         baseline = await readImage(file);
       } else {
         baseline = await toRgba(reference);

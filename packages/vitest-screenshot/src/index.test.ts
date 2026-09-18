@@ -1,9 +1,12 @@
 import { existsSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { type Comparator, extendMatchers, pixelmatchComparator, type RgbaImage } from './index.js';
 import { distortion, metricsComparator, ssim } from './metrics.js';
+import { resolveScreenshotUpdateState } from './update-policy.js';
 
 extendMatchers();
 
@@ -40,30 +43,87 @@ const alphaB = image((x, y) => [x * 8 + 7, 190, 60, 110 + y * 5]);
 
 let dir: string;
 beforeEach(() => {
+  vi.stubEnv('CI', undefined);
+  vi.stubEnv('UPDATE_SCREENSHOTS', undefined);
   dir = mkdtempSync(join(tmpdir(), 'screenshot-'));
 });
-afterEach(() => rmSync(dir, { recursive: true, force: true }));
+afterEach(() => {
+  vi.unstubAllEnvs();
+  rmSync(dir, { recursive: true, force: true });
+});
 
-const withoutCi = async (fn: () => Promise<void>) => {
-  const ci = process.env.CI;
-  delete process.env.CI;
-  try {
-    await fn();
-  } finally {
-    if (ci !== undefined) process.env.CI = ci;
-  }
-};
+it('writes a missing baseline with an explicit update, then matches it', async () => {
+  await expect(red).toMatchScreenshot('red.png', { baselineDir: dir, update: true });
+  expect(existsSync(join(dir, 'red.png'))).toBe(true);
+  await expect(red).toMatchScreenshot('red.png', { baselineDir: dir });
+});
 
-it('writes a missing baseline outside CI, then matches it', () =>
-  withoutCi(async () => {
-    await expect(red).toMatchScreenshot('red.png', { baselineDir: dir });
-    expect(existsSync(join(dir, 'red.png'))).toBe(true);
-    await expect(red).toMatchScreenshot('red.png', { baselineDir: dir });
-  }));
+it('fails on a missing baseline when updates are explicitly disabled', async () => {
+  await expect(expect(red).toMatchScreenshot('none.png', { baselineDir: dir, update: false })).rejects.toThrow(
+    /missing baseline/,
+  );
+  expect(existsSync(join(dir, 'none.png'))).toBe(false);
+});
 
-it('fails on a missing baseline in CI', async () => {
-  process.env.CI = '1';
-  await expect(expect(red).toMatchScreenshot('none.png', { baselineDir: dir })).rejects.toThrow(/missing baseline/);
+describe('snapshot update policy', () => {
+  it.each(['all', 'new', 'none'] as const)('reads Vitest 4 public state: %s', (state) => {
+    expect(resolveScreenshotUpdateState({ snapshotUpdateState: state }, undefined, false, false)).toBe(state);
+  });
+
+  it.each(['all', 'new', 'none'] as const)('reads Vitest 3 compatibility state: %s', (state) => {
+    expect(resolveScreenshotUpdateState({ _updateSnapshot: state }, undefined, false, false)).toBe(state);
+  });
+
+  it('gives explicit options precedence over environment and snapshot state', () => {
+    expect(resolveScreenshotUpdateState({ snapshotUpdateState: 'none' }, true, false, true)).toBe('all');
+    expect(resolveScreenshotUpdateState({ snapshotUpdateState: 'all' }, false, true, false)).toBe('none');
+  });
+
+  it('keeps UPDATE_SCREENSHOTS compatibility and Vitest defaults as a final fallback', () => {
+    expect(resolveScreenshotUpdateState({ snapshotUpdateState: 'none' }, undefined, true, true)).toBe('all');
+    expect(resolveScreenshotUpdateState(undefined, undefined, false, false)).toBe('new');
+    expect(resolveScreenshotUpdateState(undefined, undefined, false, true)).toBe('none');
+  });
+});
+
+it('updates an existing baseline through the real Vitest -u CLI', async () => {
+  const file = join(dir, 'cli.png');
+  const blue = solid(2, 2, [0, 0, 255, 255]);
+  await expect(red).toMatchScreenshot(file, { update: true });
+  const vitest = join(fileURLToPath(import.meta.resolve('vitest')), '..', '..', 'vitest.mjs');
+  const config = join(import.meta.dirname, '..', 'test-fixtures', 'vitest.config.ts');
+  execFileSync(process.execPath, [vitest, 'run', '--config', config, '-u'], {
+    env: { ...process.env, SCREENSHOT_BASELINE: file },
+    stdio: 'pipe',
+  });
+  await expect(blue).toMatchScreenshot(file, { update: false });
+});
+
+it('creates a missing baseline in a real local Vitest run', () => {
+  const file = join(dir, 'local.png');
+  const vitest = join(fileURLToPath(import.meta.resolve('vitest')), '..', '..', 'vitest.mjs');
+  const config = join(import.meta.dirname, '..', 'test-fixtures', 'vitest.config.ts');
+  const env = { ...process.env, SCREENSHOT_BASELINE: file };
+  delete env.CI;
+  delete env.GITHUB_ACTIONS;
+  execFileSync(process.execPath, [vitest, 'run', '--config', config], {
+    env,
+    stdio: 'pipe',
+  });
+  expect(existsSync(file)).toBe(true);
+});
+
+it('does not create a missing baseline in a real Vitest CI run', () => {
+  const file = join(dir, 'ci.png');
+  const vitest = join(fileURLToPath(import.meta.resolve('vitest')), '..', '..', 'vitest.mjs');
+  const config = join(import.meta.dirname, '..', 'test-fixtures', 'vitest.config.ts');
+  expect(() =>
+    execFileSync(process.execPath, [vitest, 'run', '--config', config], {
+      env: { ...process.env, CI: '1', SCREENSHOT_BASELINE: file },
+      stdio: 'pipe',
+    }),
+  ).toThrow();
+  expect(existsSync(file)).toBe(false);
 });
 
 it.each([
