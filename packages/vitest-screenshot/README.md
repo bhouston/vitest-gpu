@@ -45,8 +45,11 @@ relative to `baselineDir` unless absolute.
 - Any format sharp reads and writes works: png, jpg, gif, webp, avif, tiff. **We recommend png**: it is lossless,
   so a baseline written on the first run matches exactly. jpg and webp are re-encoded lossily on write and gif is
   limited to 256 colours, so loosen the comparator if you use them.
-- A missing baseline is written on first run, except when `CI` is set, where it fails.
-- `UPDATE_SCREENSHOTS=1 vitest` (or `update: true`) rewrites baselines.
+- Screenshot baselines follow Vitest's snapshot update mode: missing baselines are created locally, fail in CI,
+  and `vitest -u` creates or overwrites them.
+- `UPDATE_SCREENSHOTS=1 vitest` remains an alias for updating all screenshot baselines.
+- Per assertion, `update: true` creates or overwrites a baseline and `update: false` prevents both overwriting and
+  creating one. This explicit option takes precedence over Vitest's mode and `UPDATE_SCREENSHOTS`.
 - `.not.toMatchScreenshot()` is unsupported and fails without reading pixels or writing baseline files.
 - On failure `<name>.actual.png` and `<name>.diff.png` are written to `baselineDir` (named after the test when the
   reference is in memory). Gitignore them.
