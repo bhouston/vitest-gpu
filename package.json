@@ -19,7 +19,7 @@
     "format": "oxfmt .",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
-    "release": "pnpm -r --filter './packages/*' exec semantic-release -e semantic-release-monorepo",
+    "release": "pnpm -r --workspace-concurrency=1 --filter './packages/*' exec semantic-release -e semantic-release-monorepo",
     "package:check": "pnpm -r --filter './packages/*' exec npm pack --dry-run --ignore-scripts",
     "test:workflow": "node --test scripts/workflow.test.mjs"
   },
