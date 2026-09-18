@@ -61,11 +61,12 @@ comparators, go to `extendMatchers()` (the equivalent of `test.browser.expect.to
 extendMatchers({
   comparatorName: 'pixelmatch',
   comparatorOptions: { threshold: 0.2, allowedMismatchedPixelRatio: 0.01 },
-  comparators: { 'my-comparator': (reference, actual, { createDiff, ...options }) => ({ pass, diff, message }) },
 });
 ```
 
-Per-assertion `comparatorOptions` are merged over the global ones when they name the same comparator.
+Per-assertion `comparatorOptions` are merged over the global ones when they name the same comparator. When an
+assertion omits `comparatorName`, its options may match any registered comparator because the global default selects
+their meaning at runtime. Supplying `comparatorName` checks the options strictly against that comparator.
 
 ### `pixelmatch` (default)
 
@@ -120,6 +121,29 @@ knot.png: AE 760 (fuzz 0), PAE 0.1569, MAE 0.01042, MSE 0.0007709, RMSE 0.02777,
 A comparator has Vitest's signature: `(reference, actual, options) => { pass, diff, message }`, where `reference`
 and `actual` are `{ width, height, data }`, `options` carries `comparatorOptions` plus `createDiff`, and `diff`
 (an RGBA image or `null`) is written as `<name>.diff.png` on failure. Register it under `comparators` and select
-it with `comparatorName`.
+it with `comparatorName`. Add its option type to `ComparatorRegistry` so registration and assertions check the
+custom name and options:
+
+```ts
+import { type Comparator, extendMatchers } from 'vitest-screenshot';
+
+declare module 'vitest-screenshot' {
+  interface ComparatorRegistry {
+    'red-channel': { tolerance?: number };
+  }
+}
+
+const redChannel: Comparator<{ tolerance?: number }> = (reference, actual, { tolerance = 0 }) => {
+  const difference = Math.abs(reference.data[0]! - actual.data[0]!);
+  return { pass: difference <= tolerance, diff: null, message: `red channel differs by ${difference}` };
+};
+
+extendMatchers({ comparators: { 'red-channel': redChannel } });
+
+await expect(image).toMatchScreenshot('baseline.png', {
+  comparatorName: 'red-channel',
+  comparatorOptions: { tolerance: 2 },
+});
+```
 
 See [`demo/test/screenshots`](../../demo/test/screenshots) for every source, format and comparator combination.

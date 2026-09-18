@@ -2,6 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { type Comparator, extendMatchers } from 'vitest-screenshot';
 import { quadrants } from './quadrants.js';
 
+declare module 'vitest-screenshot' {
+  interface ComparatorRegistry {
+    'centre-pixel': { tolerance?: number };
+  }
+}
+
 /** Shift every pixel by `by` levels: invisible to the eye, but a different value everywhere. */
 const shifted = (by: number) => {
   const image = quadrants();
@@ -10,9 +16,9 @@ const shifted = (by: number) => {
 };
 
 /** A custom comparator with the signature Vitest browser mode uses: passes if the centre pixel matches. */
-const centrePixel: Comparator = (reference, actual) => {
+const centrePixel: Comparator<{ tolerance?: number }> = (reference, actual, { tolerance = 0 }) => {
   const i = (reference.height / 2) * reference.width * 4 + (reference.width / 2) * 4;
-  const same = reference.data.slice(i, i + 4).every((v, k) => v === actual.data[i + k]);
+  const same = reference.data.slice(i, i + 4).every((v, k) => Math.abs(v - actual.data[i + k]!) <= tolerance);
   return { pass: same, diff: null, message: same ? 'centre pixel matches' : 'centre pixel differs' };
 };
 
@@ -54,6 +60,10 @@ describe('comparators', () => {
 
   it('custom comparators are selected by name', async () => {
     await expect(shifted(0)).toMatchScreenshot('quadrants.png', { comparatorName: 'centre-pixel' });
+    await expect(shifted(1)).toMatchScreenshot('quadrants.png', {
+      comparatorName: 'centre-pixel',
+      comparatorOptions: { tolerance: 1 },
+    });
     await expect(
       expect(shifted(1)).toMatchScreenshot('quadrants.png', { comparatorName: 'centre-pixel' }),
     ).rejects.toThrow(/centre pixel differs/);

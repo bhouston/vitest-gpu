@@ -45,7 +45,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "tsc": "tsc"
+    "tsc": "tsc && tsc -p tsconfig.type-tests.json"
   },
   "dependencies": {
     "pixelmatch": "^7.1.0",
