@@ -37,20 +37,51 @@ const domShims = (): Record<string, unknown> => {
   };
 };
 
+type SavedProperty = { target: object; key: PropertyKey; descriptor?: PropertyDescriptor };
+
+const restore = (properties: SavedProperty[]): void => {
+  for (const { target, key, descriptor } of properties.toReversed()) {
+    if (descriptor) Object.defineProperty(target, key, descriptor);
+    else Reflect.deleteProperty(target, key);
+  }
+};
+
 export default {
   name: 'webgpu-node',
   transformMode: 'ssr',
   viteEnvironment: 'ssr',
   setup(global: Record<string, unknown>, { webgpuNode = {} }: { webgpuNode?: WebgpuNodeOptions }) {
     const shims = { ...globals, ...domShims() } as Record<string, unknown>;
-    const added = Object.keys(shims).filter((key) => !(key in global));
-    for (const key of added) global[key] = shims[key];
-    const navigator = (global.navigator ??= {}) as { gpu?: GPU };
-    Object.defineProperty(navigator, 'gpu', { value: create(webgpuNode.dawnOptions ?? []), configurable: true });
+    const modified: SavedProperty[] = [];
+    try {
+      for (const key of Object.keys(shims)) {
+        if (key in global) continue;
+        modified.push({ target: global, key, descriptor: Object.getOwnPropertyDescriptor(global, key) });
+        global[key] = shims[key];
+      }
+      if (global.navigator == null) {
+        modified.push({
+          target: global,
+          key: 'navigator',
+          descriptor: Object.getOwnPropertyDescriptor(global, 'navigator'),
+        });
+        global.navigator = {};
+      }
+      const navigator = global.navigator as object;
+      modified.push({ target: navigator, key: 'gpu', descriptor: Object.getOwnPropertyDescriptor(navigator, 'gpu') });
+      Object.defineProperty(navigator, 'gpu', {
+        value: create(webgpuNode.dawnOptions ?? []),
+        writable: false,
+        enumerable: false,
+        configurable: true,
+      });
+    } catch (error) {
+      restore(modified);
+      throw error;
+    }
     return {
-      teardown(g: Record<string, unknown>) {
-        delete navigator.gpu;
-        for (const key of added) delete g[key];
+      teardown(_global?: Record<string, unknown>) {
+        restore(modified);
       },
     };
   },

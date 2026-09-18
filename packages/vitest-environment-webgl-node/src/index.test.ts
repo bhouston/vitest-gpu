@@ -1,3 +1,6 @@
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { expect, it } from 'vitest';
 import environment from './index.ts';
 
@@ -36,4 +39,63 @@ it('defaults options when none are given', async () => {
   const { teardown } = await environment.setup(globalThis, {});
   expect(globalThis.window.innerWidth).toBe(1920);
   await teardown(globalThis);
+});
+
+it('restores overwritten descriptors and nested listener properties', async () => {
+  const originalFetch = globalThis.fetch;
+  const fetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'fetch')!;
+  const window = { addEventListener: undefined as (() => void) | undefined };
+  const document = { removeEventListener: undefined as (() => void) | undefined };
+  Object.defineProperty(globalThis, 'window', { value: window, writable: true, configurable: true });
+  Object.defineProperty(globalThis, 'document', { value: document, writable: true, configurable: true });
+  try {
+    const { teardown } = await environment.setup(globalThis, {});
+    expect(globalThis.fetch).not.toBe(originalFetch);
+    expect(window.addEventListener).toBeTypeOf('function');
+    expect(document.removeEventListener).toBeTypeOf('function');
+    await teardown(globalThis);
+    expect(Object.getOwnPropertyDescriptor(globalThis, 'fetch')).toEqual(fetchDescriptor);
+    expect(Object.getOwnPropertyDescriptor(window, 'addEventListener')).toEqual({
+      value: undefined,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
+    expect(Object.getOwnPropertyDescriptor(document, 'removeEventListener')).toEqual({
+      value: undefined,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    });
+  } finally {
+    delete (globalThis as { window?: unknown }).window;
+    delete (globalThis as { document?: unknown }).document;
+    Object.defineProperty(globalThis, 'fetch', fetchDescriptor);
+  }
+});
+
+it('honors fetch and baseDir options across repeated setups', async () => {
+  const firstDir = await mkdtemp(join(tmpdir(), 'webgl-first-'));
+  const secondDir = await mkdtemp(join(tmpdir(), 'webgl-second-'));
+  await writeFile(join(firstDir, 'value.txt'), 'first');
+  await writeFile(join(secondDir, 'value.txt'), 'second');
+  try {
+    const originalFetch = globalThis.fetch;
+    const disabled = await environment.setup(globalThis, { webglNode: { fetch: false, baseDir: firstDir } });
+    expect(globalThis.fetch).toBe(originalFetch);
+    await disabled.teardown(globalThis);
+
+    const first = await environment.setup(globalThis, { webglNode: { baseDir: firstDir } });
+    expect(await (await fetch('value.txt')).text()).toBe('first');
+    expect((await fetch('missing.txt')).status).toBe(404);
+    expect(await (await fetch(new URL('data:text/plain,remote'))).text()).toBe('remote');
+    await first.teardown(globalThis);
+
+    const second = await environment.setup(globalThis, { webglNode: { baseDir: secondDir } });
+    expect(await (await fetch('value.txt')).text()).toBe('second');
+    await second.teardown(globalThis);
+    expect(globalThis.fetch).toBe(originalFetch);
+  } finally {
+    await Promise.all([rm(firstDir, { recursive: true }), rm(secondDir, { recursive: true })]);
+  }
 });
