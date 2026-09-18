@@ -84,8 +84,9 @@ const installFetch = (global: typeof globalThis, baseDir: string): void => {
   Object.defineProperty(global, 'fetch', { value: localFetch, writable: true, configurable: true });
 };
 
-export default <Environment>{
+export default {
   name: 'webgl-node',
+  transformMode: 'ssr',
   viteEnvironment: 'ssr',
   setup(global: typeof globalThis, { webglNode = {} }: { webglNode?: WebglNodeOptions }) {
     const { backend, api, ...dom } = webglNode;
@@ -120,4 +121,4 @@ export default <Environment>{
       },
     };
   },
-};
+} satisfies Environment;

@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, expect, it } from 'vitest';
+import { afterAll, beforeAll, expect, it, vi } from 'vitest';
 import { createCanvas } from './canvas.ts';
 import environment from './index.ts';
 
@@ -37,10 +37,11 @@ it('behaves like a canvas element', () => {
   expect(createCanvas(300, 150).width).toBe(300);
 });
 
-it('requires configure() before getCurrentTexture()', () => {
+it('requires configure() before accessing pixels', async () => {
   const context = createCanvas(4, 4).getContext('webgpu');
   expect(context.getConfiguration()).toBeNull();
   expect(() => context.getCurrentTexture()).toThrow(/configure/);
+  await expect(context.readPixels()).rejects.toThrow('readPixels() called before configure()');
 });
 
 it('renders into the current texture and reads pixels back, swizzling bgra', async () => {
@@ -54,6 +55,38 @@ it('renders into the current texture and reads pixels back, swizzling bgra', asy
   expect(Array.from(image.data.subarray(0, 4))).toEqual([255, 128, 0, 255]);
   expect(Array.from(image.data.subarray(-4))).toEqual([255, 128, 0, 255]);
   expect(image.data.length).toBe(70 * 3 * 4);
+});
+
+it('accepts wider canvas formats but clearly rejects unsupported readback', async () => {
+  const canvas = createCanvas(2, 2);
+  const context = canvas.getContext('webgpu');
+  context.configure({ device, format: 'rgba16float' });
+  expect(context.getConfiguration()?.format).toBe('rgba16float');
+  clearTo(canvas, [1, 0, 0, 1]);
+  await expect(canvas.readPixels()).rejects.toThrow(
+    'readPixels() does not support canvas format "rgba16float"; supported formats are rgba8unorm, rgba8unorm-srgb, bgra8unorm, and bgra8unorm-srgb',
+  );
+});
+
+it('destroys the staging buffer when mapping fails', async () => {
+  const destroy = vi.fn();
+  const buffer = {
+    mapAsync: vi.fn().mockRejectedValue(new Error('map failed')),
+    destroy,
+  };
+  const texture = { width: 1, height: 1, destroy: vi.fn() };
+  const encoder = { copyTextureToBuffer: vi.fn(), finish: vi.fn() };
+  const fakeDevice = {
+    createTexture: vi.fn().mockReturnValue(texture),
+    createBuffer: vi.fn().mockReturnValue(buffer),
+    createCommandEncoder: vi.fn().mockReturnValue(encoder),
+    queue: { submit: vi.fn() },
+  } as unknown as GPUDevice;
+  const canvas = createCanvas(1, 1);
+  canvas.getContext('webgpu').configure({ device: fakeDevice, format: 'rgba8unorm' });
+
+  await expect(canvas.readPixels()).rejects.toThrow('map failed');
+  expect(destroy).toHaveBeenCalledOnce();
 });
 
 it('keeps the texture across frames, but recreates it on resize or reconfigure', async () => {

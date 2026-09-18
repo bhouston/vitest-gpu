@@ -5,6 +5,12 @@ const COPY_SRC = 0x01;
 const RENDER_ATTACHMENT = 0x10;
 const MAP_READ = 0x01;
 const COPY_DST = 0x08;
+const READABLE_FORMATS: ReadonlySet<GPUTextureFormat> = new Set([
+  'rgba8unorm',
+  'rgba8unorm-srgb',
+  'bgra8unorm',
+  'bgra8unorm-srgb',
+]);
 
 /** Minimal `GPUCanvasContext`: `getCurrentTexture()` is a texture the size of the canvas, kept until reconfigured or resized. */
 export class HeadlessCanvasContext {
@@ -43,25 +49,40 @@ export class HeadlessCanvasContext {
 
   /** Copies the current texture to the CPU. BGRA formats are swizzled to RGBA. */
   async readPixels(): Promise<RgbaImage> {
+    const config = this.#config;
+    if (!config) throw new Error('readPixels() called before configure()');
+    const { device, format } = config;
+    if (!READABLE_FORMATS.has(format)) {
+      throw new Error(
+        `readPixels() does not support canvas format "${format}"; supported formats are rgba8unorm, rgba8unorm-srgb, bgra8unorm, and bgra8unorm-srgb`,
+      );
+    }
     const texture = this.getCurrentTexture();
-    const { device, format } = this.#config!;
     const { width, height } = texture;
     const bytesPerRow = Math.ceil((width * 4) / 256) * 256;
     const buffer = device.createBuffer({ size: bytesPerRow * height, usage: MAP_READ | COPY_DST });
-    const encoder = device.createCommandEncoder();
-    encoder.copyTextureToBuffer({ texture }, { buffer, bytesPerRow }, [width, height]);
-    device.queue.submit([encoder.finish()]);
-    await buffer.mapAsync(MAP_READ);
-    const padded = new Uint8Array(buffer.getMappedRange());
-    const data = new Uint8Array(width * height * 4);
-    for (let y = 0; y < height; y++)
-      data.set(padded.subarray(y * bytesPerRow, y * bytesPerRow + width * 4), y * width * 4);
-    buffer.unmap();
-    buffer.destroy();
-    if (format.startsWith('bgra')) {
-      for (let i = 0; i < data.length; i += 4) [data[i], data[i + 2]] = [data[i + 2]!, data[i]!];
+    let mapped = false;
+    try {
+      const encoder = device.createCommandEncoder();
+      encoder.copyTextureToBuffer({ texture }, { buffer, bytesPerRow }, [width, height]);
+      device.queue.submit([encoder.finish()]);
+      await buffer.mapAsync(MAP_READ);
+      mapped = true;
+      const padded = new Uint8Array(buffer.getMappedRange());
+      const data = new Uint8Array(width * height * 4);
+      for (let y = 0; y < height; y++)
+        data.set(padded.subarray(y * bytesPerRow, y * bytesPerRow + width * 4), y * width * 4);
+      if (format.startsWith('bgra')) {
+        for (let i = 0; i < data.length; i += 4) [data[i], data[i + 2]] = [data[i + 2]!, data[i]!];
+      }
+      return { width, height, data };
+    } finally {
+      try {
+        if (mapped) buffer.unmap();
+      } finally {
+        buffer.destroy();
+      }
     }
-    return { width, height, data };
   }
 
   #drop(): void {
