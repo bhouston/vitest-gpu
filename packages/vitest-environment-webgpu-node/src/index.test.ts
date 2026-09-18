@@ -32,7 +32,7 @@ it('adds navigator.gpu backed by Dawn, the GPU* globals and a canvas shim, and r
   buffer.unmap();
   device.destroy();
   await teardown(global);
-  expect(global).toEqual({ GPU: 'kept', navigator: {} });
+  expect(global).toEqual({ GPU: 'kept' });
 });
 
 it('reuses an existing navigator object and defaults options', async () => {
@@ -43,4 +43,43 @@ it('reuses an existing navigator object and defaults options', async () => {
   expect(typeof global.navigator.gpu.requestAdapter).toBe('function');
   await teardown(global);
   expect(navigator).toEqual({ userAgent: 'x' });
+});
+
+it('restores the exact navigator.gpu descriptor', async () => {
+  const originalGpu = { name: 'original' };
+  const navigator = {};
+  const descriptor: PropertyDescriptor = {
+    value: originalGpu,
+    writable: true,
+    enumerable: true,
+    configurable: true,
+  };
+  Object.defineProperty(navigator, 'gpu', descriptor);
+  const global: Record<string, any> = { navigator };
+  const { teardown } = await environment.setup(global, {});
+  expect(global.navigator.gpu).not.toBe(originalGpu);
+  await teardown(global);
+  expect(Object.getOwnPropertyDescriptor(navigator, 'gpu')).toEqual(descriptor);
+});
+
+it('unwinds nested setups in teardown order', async () => {
+  const navigator = {};
+  const global: Record<string, any> = { navigator };
+  const first = await environment.setup(global, {});
+  const firstGpu = global.navigator.gpu;
+  const second = await environment.setup(global, {});
+  expect(global.navigator.gpu).not.toBe(firstGpu);
+  await second.teardown(global);
+  expect(global.navigator.gpu).toBe(firstGpu);
+  await first.teardown(global);
+  expect(navigator).toEqual({});
+});
+
+it('removes shims when setup fails after partially installing them', async () => {
+  const navigator = {};
+  Object.defineProperty(navigator, 'gpu', { value: 'locked', configurable: false });
+  const global: Record<string, any> = { navigator };
+  expect(() => environment.setup(global, {})).toThrow(TypeError);
+  expect(global).toEqual({ navigator });
+  expect(global.navigator.gpu).toBe('locked');
 });
