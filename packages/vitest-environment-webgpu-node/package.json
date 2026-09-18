@@ -41,8 +41,8 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc -b",
-    "tsc": "tsc -b"
+    "build": "tsc",
+    "tsc": "tsc"
   },
   "dependencies": {
     "@webgpu/types": "^0.1.72",

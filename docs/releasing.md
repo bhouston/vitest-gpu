@@ -25,8 +25,8 @@ package directory, then configure the trusted publisher.
 
 ## GitHub configuration
 
-Keep `main` as the sole integration branch. Enable squash merges with the PR title as the default
-squash commit title; disable merge commits and rebase merges. Protect `main` with required PRs
+Keep `main` as the sole integration branch. Enable merge commits and disable squash merges
+(PRs are merged with merge commits, never squashed). Protect `main` with required PRs
 and the required checks `Quality (macos-latest)`, `Quality (ubuntu-latest)` and `PR policy`.
 Repository rules must allow the Actions token to create `*-v*` tags.
 

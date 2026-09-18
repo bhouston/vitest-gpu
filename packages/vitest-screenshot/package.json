@@ -42,8 +42,8 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc -b",
-    "tsc": "tsc -b"
+    "build": "tsc",
+    "tsc": "tsc"
   },
   "dependencies": {
     "pixelmatch": "^7.1.0",
