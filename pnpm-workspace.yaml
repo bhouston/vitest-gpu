@@ -3,4 +3,5 @@ packages:
   - 'demo'
 allowBuilds:
   '@onirenaud/node-webgl': true
+  '@vgpu/adapter-node': false
   webgpu: true

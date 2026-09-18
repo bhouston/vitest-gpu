@@ -1,5 +1,10 @@
 {
   "extends": "../tsconfig.node.json",
-  "compilerOptions": { "noEmit": true, "rootDir": ".", "types": ["node", "@webgpu/types"] },
-  "include": ["test/**/*.ts", "vitest.config.ts"]
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": ".",
+    "types": ["node", "@webgpu/types"],
+    "incremental": false
+  },
+  "include": ["globals.d.ts", "test/**/*.ts"]
 }

@@ -13,8 +13,9 @@ you read back against committed PNG baselines.
 | [`vitest-environment-webgpu-node`](packages/vitest-environment-webgpu-node) | `navigator.gpu` and the `GPU*` globals via Dawn (`webgpu`)                                  |
 | [`vitest-screenshot`](packages/vitest-screenshot)                           | `expect(rgba).toMatchScreenshot(name)` pixel-diff matcher, backend-agnostic                 |
 
-The [`demo/`](demo) workspace renders a three.js scene with `WebGLRenderer` and a raw WebGPU
-triangle, and snapshots both.
+The [`demo/`](demo) workspace walks up in baby steps for each API: is there a device, upload data,
+download data, draw a triangle, then real libraries: three.js (`WebGLRenderer` and `WebGPURenderer`),
+Babylon.js (WebGL `Engine`), Babylon Lite (WebGPU) and Vercel's vgpu, each snapshotted.
 
 ## Why environments rather than browser mode
 

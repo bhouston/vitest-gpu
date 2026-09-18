@@ -1,10 +1,16 @@
 import { expect, it } from 'vitest';
 import environment from './index.ts';
 
+const listener = () => {};
+
 it('installs the DOM shim with a real WebGL2 canvas and removes it on teardown', async () => {
   expect(globalThis.document).toBeUndefined();
   const { teardown } = await environment.setup(globalThis, { webglNode: { innerWidth: 320, api: 'auto' } });
   expect(globalThis.window.innerWidth).toBe(320);
+  window.addEventListener('resize', listener);
+  document.addEventListener('visibilitychange', listener);
+  window.removeEventListener('resize', listener);
+  document.removeEventListener('visibilitychange', listener);
   const canvas = document.createElement('canvas');
   canvas.width = 4;
   canvas.height = 4;

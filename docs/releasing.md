@@ -10,12 +10,12 @@ format `<package>-v<version>`, so packages version independently.
 
 On npm, for **each** package open Settings → Trusted publishing, choose GitHub Actions and enter:
 
-| Field                | Value                            |
-| -------------------- | -------------------------------- |
-| Organization or user | `bhouston`                       |
-| Repository           | `vitest-gpu`                      |
-| Workflow filename    | `release.yml`                    |
-| Environment          | Leave blank                      |
+| Field                | Value         |
+| -------------------- | ------------- |
+| Organization or user | `bhouston`    |
+| Repository           | `vitest-gpu`  |
+| Workflow filename    | `release.yml` |
+| Environment          | Leave blank   |
 
 The workflow runs on GitHub-hosted Ubuntu with `id-token: write` and uses the Node version in
 `.nvmrc`. Do not add `NPM_TOKEN`, `NODE_AUTH_TOKEN`, or `registry-url` to setup-node. The built-in

@@ -43,5 +43,7 @@ Options are those of node-webgl's `init()` (`backend`, `api`) and `installDOM()`
 (`baseDir`, `fetch`, `devicePixelRatio`, `innerWidth`, `innerHeight`, `frameInterval`).
 Pair with [`vitest-screenshot`](../vitest-screenshot) for pixel-diff assertions.
 
+Types for the installed globals: add `import 'vitest-environment-webgl-node/globals';` to a `.d.ts` file your tsconfig includes.
+
 On Linux CI install Mesa (`apt-get install libegl1 libgles2 libgl1-mesa-dri`) and set
 `LIBGL_ALWAYS_SOFTWARE=1`. macOS and Windows use prebuilt binaries.

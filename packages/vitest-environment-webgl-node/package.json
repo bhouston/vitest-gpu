@@ -23,6 +23,7 @@
     "directory": "packages/vitest-environment-webgl-node"
   },
   "files": [
+    "globals.d.ts",
     "dist/**/*.js",
     "dist/**/*.js.map",
     "dist/**/*.d.ts",
@@ -36,6 +37,9 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./globals": {
+      "types": "./globals.d.ts"
     }
   },
   "publishConfig": {

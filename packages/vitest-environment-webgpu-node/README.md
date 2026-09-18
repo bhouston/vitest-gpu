@@ -36,5 +36,24 @@ it('runs a compute shader', async () => {
 `dawnOptions` are passed straight to Dawn: `backend=<null|d3d11|d3d12|metal|vulkan|opengl|opengles>`,
 `adapter=<name>`, `enable-dawn-features=...`, `disable-dawn-features=...`.
 
-There is no `<canvas>`: render to a `GPUTexture`, copy it to a buffer and read it back. Pair with
-[`vitest-screenshot`](../vitest-screenshot) for pixel-diff assertions on that buffer.
+## Canvas
+
+Dawn has no `<canvas>`, so the environment ships a headless one whose `getContext('webgpu')` returns a
+`GPUCanvasContext` backed by a texture. `document.createElement('canvas')`, `HTMLCanvasElement`, `window`,
+`self` and `requestAnimationFrame` are installed too (only when missing), which is enough for three.js
+`WebGPURenderer`, Babylon Lite and vgpu to run unchanged.
+
+```ts
+import * as THREE from 'three/webgpu';
+import { createCanvas } from 'vitest-environment-webgpu-node';
+
+const canvas = createCanvas(256, 256);
+const renderer = new THREE.WebGPURenderer({ canvas: canvas.asElement() });
+await renderer.init();
+await renderer.renderAsync(scene, camera);
+expect(await canvas.readPixels()).toMatchScreenshot('scene');
+```
+
+`readPixels()` returns `{ width, height, data }` RGBA8 pixels, ready for
+[`vitest-screenshot`](../vitest-screenshot). `asElement()` is the same object typed as an
+`HTMLCanvasElement` for library signatures that demand one.

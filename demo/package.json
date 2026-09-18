@@ -2,10 +2,16 @@
   "name": "demo",
   "private": true,
   "type": "module",
+  "scripts": {
+    "tsc": "tsc -p tsconfig.json"
+  },
   "devDependencies": {
+    "@babylonjs/core": "^9.27.0",
+    "@babylonjs/lite": "^1.30.0",
     "@types/three": "^0.186.0",
     "@webgpu/types": "^0.1.72",
     "three": "^0.186.0",
+    "vgpu": "^0.5.0",
     "vitest": "^4.1.11",
     "vitest-environment-webgl-node": "workspace:*",
     "vitest-environment-webgpu-node": "workspace:*",
