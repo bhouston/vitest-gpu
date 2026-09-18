@@ -17,6 +17,8 @@ it('renders a three.js torus knot with WebGPURenderer', async () => {
   camera.position.z = 3;
   scene.add(new THREE.Mesh(new THREE.TorusKnotGeometry(0.7, 0.25, 128, 32), new THREE.MeshNormalMaterial()));
   await renderer.renderAsync(scene, camera);
-  await expect(canvas).toMatchScreenshot('three-torus-knot.png', { maxDiffRatio: 0.02 });
+  await expect(canvas).toMatchScreenshot('three-torus-knot.png', {
+    comparatorOptions: { allowedMismatchedPixelRatio: 0.02 },
+  });
   renderer.dispose();
 });

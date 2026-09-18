@@ -16,6 +16,10 @@ it('renders a fullscreen effect with vgpu and reads the target back', async () =
   frame(gpu, (f) => f.pass(colorTarget, gradient));
   const data = new Uint8Array(await colorTarget.color.read({ mipLevel: 0, region: 'all' }));
   expect(data.length).toBe(size * size * 4);
-  await expect({ width: size, height: size, data }).toMatchScreenshot('vgpu-gradient.png', { maxDiffRatio: 0.01 });
+  // A smooth gradient: judge overall error (PSNR in dB) rather than counting pixels that round differently.
+  await expect({ width: size, height: size, data }).toMatchScreenshot('vgpu-gradient.png', {
+    comparatorName: 'metrics',
+    comparatorOptions: { PSNR: 40 },
+  });
   gpu.dispose();
 });
