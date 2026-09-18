@@ -4,8 +4,9 @@ import type { Environment } from 'vitest/environments';
 /** Set under `test.environmentOptions.webglNode` in your Vitest config. */
 export type WebglNodeOptions = InitOptions & InstallDOMOptions;
 
-export default <Environment>{
+export default {
   name: 'webgl-node',
+  transformMode: 'ssr',
   viteEnvironment: 'ssr',
   setup(global: typeof globalThis, { webglNode = {} }: { webglNode?: WebglNodeOptions }) {
     const { backend, api, ...dom } = webglNode;
@@ -26,4 +27,4 @@ export default <Environment>{
       },
     };
   },
-};
+} satisfies Environment;

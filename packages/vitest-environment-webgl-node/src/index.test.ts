@@ -3,6 +3,11 @@ import environment from './index.ts';
 
 const listener = () => {};
 
+it('declares the SSR loader metadata required by Vitest 3 and 4', () => {
+  expect(environment.transformMode).toBe('ssr');
+  expect(environment.viteEnvironment).toBe('ssr');
+});
+
 it('installs the DOM shim with a real WebGL2 canvas and removes it on teardown', async () => {
   expect(globalThis.document).toBeUndefined();
   const { teardown } = await environment.setup(globalThis, { webglNode: { innerWidth: 320, api: 'auto' } });
