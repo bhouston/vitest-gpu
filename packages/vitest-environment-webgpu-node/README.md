@@ -55,5 +55,7 @@ await expect(canvas).toMatchScreenshot('scene.png');
 ```
 
 `readPixels()` returns `{ width, height, data }` RGBA8 pixels, ready for
-[`vitest-screenshot`](../vitest-screenshot). `asElement()` is the same object typed as an
-`HTMLCanvasElement` for library signatures that demand one.
+[`vitest-screenshot`](../vitest-screenshot). Readback supports `rgba8unorm`, `rgba8unorm-srgb`,
+`bgra8unorm`, and `bgra8unorm-srgb`; other canvas formats remain valid for rendering but
+`readPixels()` rejects them with an unsupported-format error. `asElement()` is the same object typed
+as an `HTMLCanvasElement` for library signatures that demand one.
