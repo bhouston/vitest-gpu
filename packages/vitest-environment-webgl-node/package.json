@@ -1,6 +1,6 @@
 {
   "name": "vitest-environment-webgl-node",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Vitest environment that provides real headless WebGL 1/2 (ANGLE via @onirenaud/node-webgl) in Node",
   "keywords": [
     "headless",

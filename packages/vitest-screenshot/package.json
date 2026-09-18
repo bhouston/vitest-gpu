@@ -1,6 +1,6 @@
 {
   "name": "vitest-screenshot",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "toMatchScreenshot(): pixel-diff an RGBA image against a committed PNG baseline in Vitest",
   "keywords": [
     "matcher",
