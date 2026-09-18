@@ -3,8 +3,7 @@
   "compilerOptions": {
     "noEmit": true,
     "rootDir": ".",
-    "types": ["node", "@webgpu/types"],
-    "incremental": false
+    "types": ["node", "@webgpu/types"]
   },
   "include": ["globals.d.ts", "test/**/*.ts"]
 }
