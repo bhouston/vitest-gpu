@@ -1,0 +1,5 @@
+{
+  "extends": "../../tsconfig.node.json",
+  "compilerOptions": { "composite": true },
+  "exclude": ["src/**/*.test.ts", "dist", "node_modules"]
+}

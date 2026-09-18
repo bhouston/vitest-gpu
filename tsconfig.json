@@ -1,0 +1,8 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/vitest-environment-webgl-node" },
+    { "path": "packages/vitest-environment-webgpu-node" },
+    { "path": "packages/vitest-screenshot" }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "demo",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@types/three": "^0.186.0",
+    "@webgpu/types": "^0.1.72",
+    "three": "^0.186.0",
+    "vitest": "^4.1.11",
+    "vitest-environment-webgl-node": "workspace:*",
+    "vitest-environment-webgpu-node": "workspace:*",
+    "vitest-screenshot": "workspace:*"
+  }
+}

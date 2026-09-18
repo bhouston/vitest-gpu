@@ -1,0 +1,8 @@
+node_modules
+dist
+coverage
+publish
+*.tsbuildinfo
+.DS_Store
+__screenshots__/*.actual.png
+__screenshots__/*.diff.png

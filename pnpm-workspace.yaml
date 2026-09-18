@@ -1,0 +1,6 @@
+packages:
+  - 'packages/*'
+  - 'demo'
+allowBuilds:
+  '@onirenaud/node-webgl': true
+  webgpu: true

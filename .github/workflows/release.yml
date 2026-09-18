@@ -1,0 +1,62 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Validate the release without publishing
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require dispatch on main
+        run: |
+          if [ "${{ github.ref }}" != "refs/heads/main" ]; then
+            echo "Release must be dispatched with --ref main, not ${{ github.ref }}." >&2
+            exit 1
+          fi
+  checks:
+    needs: guard
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit
+  release:
+    needs: checks
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Publish with npm trusted publishing
+        run: pnpm release ${{ inputs.dry_run && '--dry-run' || '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HUSKY: '0'
+      - name: Summarize
+        if: always()
+        run: |
+          if [ -n "$(git tag --points-at HEAD)" ]; then
+            echo "Released $(git tag --points-at HEAD)." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No release-worthy commits since the last release; nothing published." >> "$GITHUB_STEP_SUMMARY"
+          fi

@@ -1,0 +1,57 @@
+{
+  "name": "vitest-environment-webgpu-node",
+  "version": "0.0.0",
+  "description": "Vitest environment that provides real headless WebGPU (Dawn via the webgpu package) in Node",
+  "keywords": [
+    "dawn",
+    "headless",
+    "testing",
+    "vitest",
+    "vitest-environment",
+    "webgpu"
+  ],
+  "homepage": "https://github.com/bhouston/vitest-gpu#readme",
+  "bugs": {
+    "url": "https://github.com/bhouston/vitest-gpu/issues"
+  },
+  "license": "MIT",
+  "author": "Ben Houston <ben@ben3d.ca> (https://ben3d.ca)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bhouston/vitest-gpu.git",
+    "directory": "packages/vitest-environment-webgpu-node"
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "CHANGELOG.md"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "tsc": "tsc -b"
+  },
+  "dependencies": {
+    "@webgpu/types": "^0.1.72",
+    "webgpu": "^0.6.1"
+  },
+  "peerDependencies": {
+    "vitest": ">=3 <5"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

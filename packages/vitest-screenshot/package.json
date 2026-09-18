@@ -1,0 +1,61 @@
+{
+  "name": "vitest-screenshot",
+  "version": "0.0.0",
+  "description": "toMatchScreenshot(): pixel-diff an RGBA image against a committed PNG baseline in Vitest",
+  "keywords": [
+    "matcher",
+    "pixelmatch",
+    "screenshot",
+    "visual-regression",
+    "vitest",
+    "webgl",
+    "webgpu"
+  ],
+  "homepage": "https://github.com/bhouston/vitest-gpu#readme",
+  "bugs": {
+    "url": "https://github.com/bhouston/vitest-gpu/issues"
+  },
+  "license": "MIT",
+  "author": "Ben Houston <ben@ben3d.ca> (https://ben3d.ca)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bhouston/vitest-gpu.git",
+    "directory": "packages/vitest-screenshot"
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "CHANGELOG.md"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "tsc": "tsc -b"
+  },
+  "dependencies": {
+    "pixelmatch": "^7.1.0",
+    "pngjs": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/pngjs": "^6.0.5"
+  },
+  "peerDependencies": {
+    "vitest": ">=3 <5"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

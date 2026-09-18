@@ -1,0 +1,57 @@
+{
+  "name": "vitest-environment-webgl-node",
+  "version": "0.0.0",
+  "description": "Vitest environment that provides real headless WebGL 1/2 (ANGLE via @onirenaud/node-webgl) in Node",
+  "keywords": [
+    "headless",
+    "testing",
+    "three.js",
+    "vitest",
+    "vitest-environment",
+    "webgl",
+    "webgl2"
+  ],
+  "homepage": "https://github.com/bhouston/vitest-gpu#readme",
+  "bugs": {
+    "url": "https://github.com/bhouston/vitest-gpu/issues"
+  },
+  "license": "MIT",
+  "author": "Ben Houston <ben@ben3d.ca> (https://ben3d.ca)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bhouston/vitest-gpu.git",
+    "directory": "packages/vitest-environment-webgl-node"
+  },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.js.map",
+    "dist/**/*.d.ts",
+    "dist/**/*.d.ts.map",
+    "CHANGELOG.md"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "tsc": "tsc -b"
+  },
+  "dependencies": {
+    "@onirenaud/node-webgl": "^0.2.0"
+  },
+  "peerDependencies": {
+    "vitest": ">=3 <5"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

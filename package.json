@@ -1,0 +1,58 @@
+{
+  "name": "vitest-gpu",
+  "private": true,
+  "description": "Vitest environments for headless WebGL and WebGPU in Node, plus a screenshot matcher",
+  "license": "MIT",
+  "author": "Ben Houston <ben@ben3d.ca> (https://ben3d.ca)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bhouston/vitest-gpu.git"
+  },
+  "type": "module",
+  "scripts": {
+    "prepare": "husky",
+    "build": "pnpm -r --filter './packages/*' build",
+    "tsc": "pnpm -r tsc",
+    "test": "pnpm build && vitest run",
+    "test:coverage": "pnpm build && vitest run --coverage",
+    "test:watch": "vitest",
+    "format": "oxfmt .",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
+    "release": "pnpm -r --filter './packages/*' exec semantic-release -e semantic-release-monorepo",
+    "package:check": "pnpm -r --filter './packages/*' exec npm pack --dry-run --ignore-scripts",
+    "test:workflow": "node --test scripts/workflow.test.mjs"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.2",
+    "@commitlint/config-conventional": "^21.2.2",
+    "@semantic-release/changelog": "^7.0.0",
+    "@semantic-release/commit-analyzer": "^13.0.1",
+    "@semantic-release/github": "^12.0.9",
+    "@semantic-release/npm": "^13.1.5",
+    "@semantic-release/release-notes-generator": "^14.1.1",
+    "@types/node": "^24.13.5",
+    "@vitest/coverage-v8": "^4.1.11",
+    "conventional-changelog-conventionalcommits": "^10.4.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.5.1",
+    "oxfmt": "^0.58.0",
+    "oxlint": "^1.83.0",
+    "semantic-release": "^25.0.9",
+    "semantic-release-monorepo": "^8.0.2",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0",
+    "vitest": "^4.1.11"
+  },
+  "lint-staged": {
+    "*.{js,ts,mjs,cjs}": [
+      "oxfmt",
+      "oxlint --fix"
+    ],
+    "*.{json,md,yml,yaml}": "oxfmt"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "packageManager": "pnpm@11.1.3"
+}
