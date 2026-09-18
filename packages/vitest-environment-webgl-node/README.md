@@ -43,7 +43,11 @@ Options are those of node-webgl's `init()` (`backend`, `api`) and `installDOM()`
 (`baseDir`, `fetch`, `devicePixelRatio`, `innerWidth`, `innerHeight`, `frameInterval`).
 Pair with [`vitest-screenshot`](../vitest-screenshot) for pixel-diff assertions.
 
-Types for the installed globals: add `import 'vitest-environment-webgl-node/globals';` to a `.d.ts` file your tsconfig includes.
+For a Node-only TypeScript project, opt into types for the installed globals by adding
+`import 'vitest-environment-webgl-node/globals';` to a `.d.ts` file your tsconfig includes. Do not include
+this entry in projects that load TypeScript's DOM library: the real browser globals and node-webgl's shims
+intentionally have different types. DOM projects can use their standard global declarations and cast a
+node-webgl canvas at the library boundary when necessary.
 
 On Linux CI install Mesa (`apt-get install libegl1 libgles2 libgl1-mesa-dri`) and set
 `LIBGL_ALWAYS_SOFTWARE=1`. macOS and Windows use prebuilt binaries.

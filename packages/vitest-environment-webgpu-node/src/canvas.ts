@@ -1,6 +1,12 @@
 /** RGBA8 pixels, top row first. Feed it to `vitest-screenshot`'s `toMatchScreenshot`. */
 export type RgbaImage = { width: number; height: number; data: Uint8Array };
 
+type DefaultCanvasElement = typeof globalThis extends {
+  HTMLCanvasElement: { prototype: infer TElement };
+}
+  ? TElement
+  : HeadlessCanvas;
+
 const COPY_SRC = 0x01;
 const RENDER_ATTACHMENT = 0x10;
 const MAP_READ = 0x01;
@@ -120,9 +126,9 @@ export class HeadlessCanvas {
     return this.#context.readPixels();
   }
 
-  /** This same object, typed as an element for libraries whose signatures demand one. */
-  asElement(): HTMLCanvasElement {
-    return this as unknown as HTMLCanvasElement;
+  /** This same object, cast to the element type a rendering library expects. */
+  asElement<TElement = DefaultCanvasElement>(): TElement {
+    return this as unknown as TElement;
   }
 
   getBoundingClientRect(): { x: number; y: number; width: number; height: number; top: number; left: number } {

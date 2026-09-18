@@ -24,6 +24,22 @@ export default defineConfig({
 });
 ```
 
+### TypeScript types
+
+The package selects WebGPU declarations for your compiler version. TypeScript 5 receives the bundled
+`@webgpu/types` dependency; TypeScript 6 and later use WebGPU declarations from their DOM library. Include
+the DOM library and keep `skipLibCheck` disabled to catch declaration conflicts:
+
+```json
+{
+  "compilerOptions": {
+    "lib": ["ES2024", "DOM"],
+    "types": ["node"],
+    "skipLibCheck": false
+  }
+}
+```
+
 ```ts
 import { expect, it } from 'vitest';
 
@@ -57,5 +73,6 @@ await expect(canvas).toMatchScreenshot('scene.png');
 `readPixels()` returns `{ width, height, data }` RGBA8 pixels, ready for
 [`vitest-screenshot`](../vitest-screenshot). Readback supports `rgba8unorm`, `rgba8unorm-srgb`,
 `bgra8unorm`, and `bgra8unorm-srgb`; other canvas formats remain valid for rendering but
-`readPixels()` rejects them with an unsupported-format error. `asElement()` is the same object typed
-as an `HTMLCanvasElement` for library signatures that demand one.
+`readPixels()` rejects them with an unsupported-format error. `asElement()` returns the same object and
+defaults to `HTMLCanvasElement` when DOM types are available. You can also request a library-specific type
+explicitly with `canvas.asElement<HTMLCanvasElement>()`.
