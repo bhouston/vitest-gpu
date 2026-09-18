@@ -51,7 +51,7 @@ const canvas = createCanvas(256, 256);
 const renderer = new THREE.WebGPURenderer({ canvas: canvas.asElement() });
 await renderer.init();
 await renderer.renderAsync(scene, camera);
-expect(await canvas.readPixels()).toMatchScreenshot('scene');
+await expect(canvas).toMatchScreenshot('scene.png');
 ```
 
 `readPixels()` returns `{ width, height, data }` RGBA8 pixels, ready for

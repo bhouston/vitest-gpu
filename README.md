@@ -5,13 +5,13 @@
 
 Run real WebGL and WebGPU code inside plain Vitest, with no browser, no Playwright and no mocks.
 Two Vitest environments put a GPU-backed context on `globalThis`, and a matcher diffs the pixels
-you read back against committed PNG baselines.
+you read back against committed image baselines (png recommended; jpg, gif and webp also work).
 
 | Package                                                                     | What it does                                                                                |
 | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | [`vitest-environment-webgl-node`](packages/vitest-environment-webgl-node)   | `document.createElement('canvas').getContext('webgl2')` via ANGLE (`@onirenaud/node-webgl`) |
 | [`vitest-environment-webgpu-node`](packages/vitest-environment-webgpu-node) | `navigator.gpu` and the `GPU*` globals via Dawn (`webgpu`)                                  |
-| [`vitest-screenshot`](packages/vitest-screenshot)                           | `expect(rgba).toMatchScreenshot(name)` pixel-diff matcher, backend-agnostic                 |
+| [`vitest-screenshot`](packages/vitest-screenshot)                           | `await expect(canvas).toMatchScreenshot('x.png')` pixel-diff matcher, backend-agnostic      |
 
 The [`demo/`](demo) workspace walks up in baby steps for each API: is there a device, upload data,
 download data, draw a triangle, then real libraries: three.js (`WebGLRenderer` and `WebGPURenderer`),
@@ -48,12 +48,12 @@ import { extendMatchers } from 'vitest-screenshot';
 
 extendMatchers();
 
-it('renders', () => {
+it('renders', async () => {
   const canvas = document.createElement('canvas');
   const renderer = new THREE.WebGLRenderer({ canvas });
   renderer.setSize(256, 256, false);
   renderer.render(scene, camera);
-  expect(canvas.getImageData()).toMatchScreenshot('scene');
+  await expect(canvas).toMatchScreenshot('scene.png');
 });
 ```
 
