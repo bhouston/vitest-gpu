@@ -43,5 +43,5 @@ it('renders a triangle to a texture and reads it back', async () => {
   readback.unmap();
   device.destroy();
   expect(Array.from(data.subarray(0, 4))).toEqual([0, 0, 51, 255]);
-  expect({ width: size, height: size, data }).toMatchScreenshot('triangle', { maxDiffRatio: 0.01 });
+  await expect({ width: size, height: size, data }).toMatchScreenshot('triangle.png', { maxDiffRatio: 0.01 });
 });

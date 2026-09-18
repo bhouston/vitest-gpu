@@ -16,6 +16,6 @@ it('renders a fullscreen effect with vgpu and reads the target back', async () =
   frame(gpu, (f) => f.pass(colorTarget, gradient));
   const data = new Uint8Array(await colorTarget.color.read({ mipLevel: 0, region: 'all' }));
   expect(data.length).toBe(size * size * 4);
-  expect({ width: size, height: size, data }).toMatchScreenshot('vgpu-gradient', { maxDiffRatio: 0.01 });
+  await expect({ width: size, height: size, data }).toMatchScreenshot('vgpu-gradient.png', { maxDiffRatio: 0.01 });
   gpu.dispose();
 });

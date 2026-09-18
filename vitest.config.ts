@@ -11,6 +11,10 @@ export default defineConfig({
         root: 'demo',
         test: { name: 'demo-webgpu', environment: 'webgpu-node', include: ['test/webgpu/**/*.test.ts'] },
       },
+      {
+        root: 'demo',
+        test: { name: 'demo-screenshots', environment: 'webgl-node', include: ['test/screenshots/**/*.test.ts'] },
+      },
     ],
     coverage: {
       provider: 'v8',

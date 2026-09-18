@@ -1,7 +1,7 @@
 {
   "name": "vitest-screenshot",
   "version": "0.1.0",
-  "description": "toMatchScreenshot(): pixel-diff an RGBA image against a committed PNG baseline in Vitest",
+  "description": "toMatchScreenshot(): pixel-diff a canvas, Image or ImageData against a committed png/jpg/gif/webp baseline in Vitest",
   "keywords": [
     "matcher",
     "pixelmatch",
@@ -47,10 +47,7 @@
   },
   "dependencies": {
     "pixelmatch": "^7.1.0",
-    "pngjs": "^7.0.0"
-  },
-  "devDependencies": {
-    "@types/pngjs": "^6.0.5"
+    "sharp": "^0.35.4"
   },
   "peerDependencies": {
     "vitest": ">=3 <5"
