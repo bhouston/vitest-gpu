@@ -19,8 +19,9 @@
     "format": "oxfmt .",
     "lint": "oxlint .",
     "lint:fix": "oxlint --fix .",
+    "package:maps": "pnpm build && node scripts/check-package-maps.mjs",
     "release": "pnpm -r --workspace-concurrency=1 --filter './packages/*' exec semantic-release -e semantic-release-monorepo",
-    "package:check": "pnpm -r --filter './packages/*' exec npm pack --dry-run --ignore-scripts",
+    "package:check": "pnpm package:maps && pnpm -r --filter './packages/*' exec npm pack --dry-run --ignore-scripts",
     "test:workflow": "node --test scripts/workflow.test.mjs"
   },
   "devDependencies": {
