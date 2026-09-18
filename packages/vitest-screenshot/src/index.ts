@@ -119,6 +119,7 @@ export function extendMatchers(config: ScreenshotConfig = {}): void {
   };
   expect.extend({
     async toMatchScreenshot(received: ImageSource, reference: Reference, options: ScreenshotOptions = {}) {
+      if (this.isNot) throw new Error('`.not.toMatchScreenshot()` is not supported');
       const dir = options.baselineDir ?? join(dirname(this.testPath!), '__screenshots__');
       const actual = await toRgba(received);
       let file: string | undefined;

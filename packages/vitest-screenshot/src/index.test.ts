@@ -1,7 +1,7 @@
 import { existsSync, mkdtempSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { type Comparator, extendMatchers, pixelmatchComparator, type RgbaImage } from './index.js';
 import { distortion, metricsComparator, ssim } from './metrics.js';
 
@@ -64,6 +64,27 @@ it('writes a missing baseline outside CI, then matches it', () =>
 it('fails on a missing baseline in CI', async () => {
   process.env.CI = '1';
   await expect(expect(red).toMatchScreenshot('none.png', { baselineDir: dir })).rejects.toThrow(/missing baseline/);
+});
+
+it.each([
+  ['existing file', 'existing.png', false],
+  ['existing file in update mode', 'existing.png', true],
+  ['missing file', 'missing.png', false],
+  ['missing file in update mode', 'missing.png', true],
+  ['in-memory baseline', 'memory', false],
+  ['in-memory baseline in update mode', 'memory', true],
+] as const)('rejects negation before reading pixels or writing baselines: %s', async (_name, kind, update) => {
+  await expect(red).toMatchScreenshot('existing.png', { baselineDir: dir, update: true });
+  const actualRead = vi.fn().mockResolvedValue(red);
+  const baselineRead = vi.fn().mockResolvedValue(red);
+  const reference = kind === 'memory' ? { readPixels: baselineRead } : kind;
+
+  await expect(
+    expect({ readPixels: actualRead }).not.toMatchScreenshot(reference, { baselineDir: dir, update }),
+  ).rejects.toThrow('`.not.toMatchScreenshot()` is not supported');
+  expect(actualRead).not.toHaveBeenCalled();
+  expect(baselineRead).not.toHaveBeenCalled();
+  expect(readdirSync(dir)).toEqual(['existing.png']);
 });
 
 it('requires an extension on a reference path', async () => {

@@ -47,6 +47,7 @@ relative to `baselineDir` unless absolute.
   limited to 256 colours, so loosen the comparator if you use them.
 - A missing baseline is written on first run, except when `CI` is set, where it fails.
 - `UPDATE_SCREENSHOTS=1 vitest` (or `update: true`) rewrites baselines.
+- `.not.toMatchScreenshot()` is unsupported and fails without reading pixels or writing baseline files.
 - On failure `<name>.actual.png` and `<name>.diff.png` are written to `baselineDir` (named after the test when the
   reference is in memory). Gitignore them.
 
