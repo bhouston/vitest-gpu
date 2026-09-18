@@ -43,5 +43,9 @@ it('renders a triangle to a texture and reads it back', async () => {
   readback.unmap();
   device.destroy();
   expect(Array.from(data.subarray(0, 4))).toEqual([0, 0, 51, 255]);
-  await expect({ width: size, height: size, data }).toMatchScreenshot('triangle.png', { maxDiffRatio: 0.01 });
+  // Edge pixels rasterize differently per GPU: allow up to 1% of them to differ by more than 10% in colour.
+  await expect({ width: size, height: size, data }).toMatchScreenshot('triangle.png', {
+    comparatorName: 'metrics',
+    comparatorOptions: { fuzz: 0.1, AE: size * size * 0.01 },
+  });
 });

@@ -8,13 +8,17 @@ describe('baseline formats', () => {
     await expect(quadrants()).toMatchScreenshot('quadrants.png');
   });
   it('jpg', async () => {
-    await expect(quadrants()).toMatchScreenshot('quadrants.jpg', { maxDiffRatio: 0.05 });
+    await expect(quadrants()).toMatchScreenshot('quadrants.jpg', {
+      comparatorOptions: { allowedMismatchedPixelRatio: 0.05 },
+    });
   });
   it('gif', async () => {
     await expect(quadrants()).toMatchScreenshot('quadrants.gif');
   });
   it('webp', async () => {
-    await expect(quadrants()).toMatchScreenshot('quadrants.webp', { maxDiffRatio: 0.05 });
+    await expect(quadrants()).toMatchScreenshot('quadrants.webp', {
+      comparatorOptions: { allowedMismatchedPixelRatio: 0.05 },
+    });
   });
   it('rejects a reference without an extension', async () => {
     await expect(expect(quadrants()).toMatchScreenshot('quadrants')).rejects.toThrow(/needs an image extension/);

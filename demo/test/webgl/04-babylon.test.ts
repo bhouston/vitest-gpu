@@ -17,6 +17,8 @@ it('renders a lit box with Babylon.js WebGL Engine', async () => {
   MeshBuilder.CreateBox('box', { size: 1 }, scene);
   await scene.whenReadyAsync(); // shaders compile asynchronously (KHR_parallel_shader_compile)
   scene.render();
-  await expect(canvas.getImageData()).toMatchScreenshot('babylon-box.png', { maxDiffRatio: 0.02 });
+  await expect(canvas).toMatchScreenshot('babylon-box.png', {
+    comparatorOptions: { allowedMismatchedPixelRatio: 0.02 },
+  });
   engine.dispose();
 });

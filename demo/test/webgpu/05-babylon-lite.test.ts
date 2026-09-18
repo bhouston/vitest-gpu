@@ -34,6 +34,8 @@ it('renders a lit box with Babylon Lite', async () => {
     renderFrame(engine, 16);
     await waitForGpuIdle(engine);
   }
-  await expect(await canvas.readPixels()).toMatchScreenshot('babylon-lite-box.png', { maxDiffRatio: 0.02 });
+  await expect(canvas).toMatchScreenshot('babylon-lite-box.png', {
+    comparatorOptions: { allowedMismatchedPixelRatio: 0.02 },
+  });
   disposeEngine(engine);
 });

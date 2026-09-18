@@ -1,7 +1,7 @@
 # vitest-screenshot
 
-`await expect(image).toMatchScreenshot(reference)`: pixel-diff an image against a baseline committed next to
-your tests. Backend-agnostic: feed it a canvas from
+`await expect(image).toMatchScreenshot(reference)`: compare an image against a baseline committed next to your
+tests, with the same options as Vitest browser mode's `toMatchScreenshot`. Backend-agnostic: feed it a canvas from
 [`vitest-environment-webgl-node`](../vitest-environment-webgl-node) or
 [`vitest-environment-webgpu-node`](../vitest-environment-webgpu-node), an `ImageData`, a WebGPU texture
 readback, or pixels from a real browser.
@@ -20,7 +20,9 @@ extendMatchers();
 
 it('renders the knot', async () => {
   renderer.render(scene, camera);
-  await expect(canvas).toMatchScreenshot('knot.png', { maxDiffRatio: 0.01 });
+  await expect(canvas).toMatchScreenshot('knot.png', {
+    comparatorOptions: { allowedMismatchedPixelRatio: 0.01 },
+  });
 });
 ```
 
@@ -42,13 +44,81 @@ relative to `baselineDir` unless absolute.
 - Baselines live in `__screenshots__/` beside the test file (override with `baselineDir`).
 - Any format sharp reads and writes works: png, jpg, gif, webp, avif, tiff. **We recommend png**: it is lossless,
   so a baseline written on the first run matches exactly. jpg and webp are re-encoded lossily on write and gif is
-  limited to 256 colours, so loosen `maxDiffRatio` (or `threshold`) if you use them.
+  limited to 256 colours, so loosen the comparator if you use them.
 - A missing baseline is written on first run, except when `CI` is set, where it fails.
 - `UPDATE_SCREENSHOTS=1 vitest` (or `update: true`) rewrites baselines.
 - On failure `<name>.actual.png` and `<name>.diff.png` are written to `baselineDir` (named after the test when the
   reference is in memory). Gitignore them.
-- `threshold` is pixelmatch's per-pixel colour tolerance (default 0.1); `maxDiffRatio` is the fraction
-  of pixels allowed to differ (default 0.001). GPUs and drivers rasterize slightly differently, so loosen
-  `maxDiffRatio` for baselines shared across platforms.
 
-See [`demo/test/screenshots`](../../demo/test/screenshots) for every source and format combination.
+## Comparators
+
+As in [Vitest browser mode](https://vitest.dev/guide/browser/visual-regression-testing), `comparatorName` picks
+how the two images are judged and `comparatorOptions` configures it. Defaults for every assertion, and custom
+comparators, go to `extendMatchers()` (the equivalent of `test.browser.expect.toMatchScreenshot` in Vitest config):
+
+```ts
+extendMatchers({
+  comparatorName: 'pixelmatch',
+  comparatorOptions: { threshold: 0.2, allowedMismatchedPixelRatio: 0.01 },
+  comparators: { 'my-comparator': (reference, actual, { createDiff, ...options }) => ({ pass, diff, message }) },
+});
+```
+
+Per-assertion `comparatorOptions` are merged over the global ones when they name the same comparator.
+
+### `pixelmatch` (default)
+
+Vitest's built-in comparison: counts pixels whose perceptual colour distance exceeds `threshold`.
+
+| Option                                                                   | Default             | Meaning                                                          |
+| ------------------------------------------------------------------------ | ------------------- | ---------------------------------------------------------------- |
+| `threshold`                                                              | `0.1`               | Per-pixel colour distance (0..1) tolerated; smaller is stricter. |
+| `allowedMismatchedPixelRatio`                                            |                     | Fraction (0..1) of pixels allowed to differ.                     |
+| `allowedMismatchedPixels`                                                |                     | Number of pixels allowed to differ.                              |
+| `includeAA`, `alpha`, `aaColor`, `diffColor`, `diffColorAlt`, `diffMask` | pixelmatch defaults | Forwarded to [pixelmatch](https://github.com/mapbox/pixelmatch). |
+
+With both limits given the stricter wins; with neither, no pixel may differ. GPUs and drivers rasterize edges
+slightly differently, so set a ratio for baselines shared across machines.
+
+### `metrics`
+
+Whole-image error bounds with the names and semantics of ImageMagick's `compare -metric`. Give any subset; the
+assertion passes only if every bound holds. With none given it requires an exact match (`AE: 0`), like
+`compare -metric AE`.
+
+| Option  | Bound | Unit   | Meaning                                                                                                            |
+| ------- | ----- | ------ | ------------------------------------------------------------------------------------------------------------------ |
+| `fuzz`  |       | 0..1   | `-fuzz`: colour distance within which two pixels count as equal (default 0). Only affects `AE` and the diff image. |
+| `AE`    | max   | pixels | Absolute error: pixels differing by more than `fuzz`.                                                              |
+| `PAE`   | max   | 0..1   | Peak absolute error: the largest channel difference anywhere.                                                      |
+| `MAE`   | max   | 0..1   | Mean absolute error.                                                                                               |
+| `MSE`   | max   | 0..1   | Mean squared error.                                                                                                |
+| `RMSE`  | max   | 0..1   | Root mean squared error.                                                                                           |
+| `PSNR`  | min   | dB     | Peak signal-to-noise ratio; `Infinity` for identical images. 30–50 dB is typical for "same picture".               |
+| `SSIM`  | min   | 0..1   | Structural similarity (Gaussian 11×11 window, σ 1.5, over RGB); 1 is identical.                                    |
+| `DSSIM` | max   | 0..1   | Structural dissimilarity, `(1 − SSIM) / 2`.                                                                        |
+
+```ts
+await expect(canvas).toMatchScreenshot('knot.png', {
+  comparatorName: 'metrics',
+  comparatorOptions: { fuzz: 0.05, AE: 50, PSNR: 40 }, // few pixels off by >5%, and low overall error
+});
+```
+
+`AE`, `PAE`, `MAE`, `MSE`, `RMSE` and `PSNR` are computed as ImageMagick does for images with an alpha channel
+(colours alpha-premultiplied, all four channels averaged) and agree with `magick compare` to the printed digits.
+`SSIM` is the textbook definition over RGB, the value `magick compare -metric SSIM` on an opaque image reports
+as `(1 − SSIM) / 2`. The failure message lists every computed metric so you can pick a bound from a real run:
+
+```
+knot.png: AE 760 (fuzz 0), PAE 0.1569, MAE 0.01042, MSE 0.0007709, RMSE 0.02777, PSNR 31.13; failed: AE 760 > 0; see __screenshots__/knot.diff.png
+```
+
+### Custom comparators
+
+A comparator has Vitest's signature: `(reference, actual, options) => { pass, diff, message }`, where `reference`
+and `actual` are `{ width, height, data }`, `options` carries `comparatorOptions` plus `createDiff`, and `diff`
+(an RGBA image or `null`) is written as `<name>.diff.png` on failure. Register it under `comparators` and select
+it with `comparatorName`.
+
+See [`demo/test/screenshots`](../../demo/test/screenshots) for every source, format and comparator combination.

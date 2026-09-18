@@ -3,6 +3,9 @@ import { basename, dirname, extname, isAbsolute, join } from 'node:path';
 import pixelmatch from 'pixelmatch';
 import sharp, { type FormatEnum } from 'sharp';
 import { expect } from 'vitest';
+import { metricsComparator, type MetricsOptions } from './metrics.js';
+
+export type { Metric, MetricsOptions } from './metrics.js';
 
 /** Anything with RGBA8 pixels, top row first: `ImageData`, node-webgl's `canvas.getImageData()`, or a WebGPU readback. */
 export type RgbaImage = { width: number; height: number; data: Uint8Array | Uint8ClampedArray };
@@ -20,16 +23,39 @@ export type ImageSource =
 /** A baseline: a file path with extension (relative to `baselineDir` or absolute), or an in-memory `ImageSource`. */
 export type Reference = string | ImageSource;
 
-export type ScreenshotOptions = {
+/** What a comparator returns, as in Vitest browser mode: `diff` is written next to the baseline on failure. */
+export type ComparatorResult = { pass: boolean; diff: RgbaImage | null; message: string | null };
+
+/** A comparator, with the signature Vitest browser mode uses for `comparators`. */
+export type Comparator<Options extends object = Record<string, unknown>> = (
+  reference: RgbaImage,
+  actual: RgbaImage,
+  options: Options & { createDiff: boolean },
+) => ComparatorResult;
+
+/** Options of the default `pixelmatch` comparator, named as in Vitest browser mode. */
+export type PixelmatchOptions = NonNullable<Parameters<typeof pixelmatch>[5]> & {
+  /** Fraction (0..1) of pixels allowed to differ. */
+  allowedMismatchedPixelRatio?: number;
+  /** Number of pixels allowed to differ. With both limits given the stricter wins; with neither, none may differ. */
+  allowedMismatchedPixels?: number;
+};
+
+/** Which comparator judges the images. `pixelmatch` (default) and `metrics` are built in; others come from `extendMatchers({ comparators })`. */
+export type ComparatorSelection =
+  | { comparatorName?: 'pixelmatch'; comparatorOptions?: PixelmatchOptions }
+  | { comparatorName: 'metrics'; comparatorOptions?: MetricsOptions }
+  | { comparatorName: string; comparatorOptions?: Record<string, unknown> };
+
+export type ScreenshotOptions = ComparatorSelection & {
   /** Directory relative reference paths and diff images live in. Default: `__screenshots__` beside the test file. */
   baselineDir?: string;
-  /** Per-pixel colour distance (0..1) tolerated by pixelmatch. Default 0.1. */
-  threshold?: number;
-  /** Fraction (0..1) of pixels allowed to differ. Default 0.001. */
-  maxDiffRatio?: number;
   /** Overwrite the baseline file. Default: `UPDATE_SCREENSHOTS` env var is set. */
   update?: boolean;
 };
+
+/** Defaults for every assertion plus custom comparators, like `test.browser.expect.toMatchScreenshot` in Vitest config. */
+export type ScreenshotConfig = ComparatorSelection & { comparators?: Record<string, Comparator<never>> };
 
 declare module 'vitest' {
   interface Assertion {
@@ -66,10 +92,34 @@ const toRgba = async (source: ImageSource): Promise<RgbaImage> => {
   return rgba;
 };
 
-export function extendMatchers(): void {
+/** `comparatorName: 'pixelmatch'` (default): Vitest browser mode's built-in comparison. */
+export const pixelmatchComparator: Comparator<PixelmatchOptions> = (
+  reference,
+  actual,
+  { createDiff, allowedMismatchedPixelRatio, allowedMismatchedPixels, ...pixelmatchOptions },
+) => {
+  const { width, height } = actual;
+  const total = width * height;
+  const diff = createDiff ? new Uint8Array(total * 4) : undefined;
+  const count = pixelmatch(reference.data, actual.data, diff, width, height, pixelmatchOptions);
+  const limits = [allowedMismatchedPixels, allowedMismatchedPixelRatio && allowedMismatchedPixelRatio * total];
+  const allowed = limits.some((l) => l !== undefined) ? Math.min(...limits.filter((l) => l !== undefined)) : 0;
+  return {
+    pass: count <= allowed,
+    diff: diff ? { width, height, data: diff } : null,
+    message: `${count} pixels (${((count / total) * 100).toFixed(3)}%) differ, ${Math.floor(allowed)} allowed`,
+  };
+};
+
+export function extendMatchers(config: ScreenshotConfig = {}): void {
+  const comparators: Record<string, Comparator<never>> = {
+    pixelmatch: pixelmatchComparator as Comparator<never>,
+    metrics: metricsComparator as Comparator<never>,
+    ...config.comparators,
+  };
   expect.extend({
     async toMatchScreenshot(received: ImageSource, reference: Reference, options: ScreenshotOptions = {}) {
-      const dir = options.baselineDir ?? join(dirname(this.testPath ?? ''), '__screenshots__');
+      const dir = options.baselineDir ?? join(dirname(this.testPath!), '__screenshots__');
       const actual = await toRgba(received);
       let file: string | undefined;
       let baseline: RgbaImage;
@@ -87,23 +137,27 @@ export function extendMatchers(): void {
       } else {
         baseline = await toRgba(reference);
       }
-      const label = file ? basename(file) : (this.currentTestName ?? 'screenshot');
+      const label = file ? basename(file) : this.currentTestName!;
       if (baseline.width !== actual.width || baseline.height !== actual.height) {
         return result(
           false,
           `${label}: size mismatch: baseline ${baseline.width}x${baseline.height}, actual ${actual.width}x${actual.height}`,
         );
       }
-      const { width, height } = actual;
-      const diff = { width, height, data: new Uint8Array(width * height * 4) };
-      const count = pixelmatch(baseline.data, actual.data, diff.data, width, height, {
-        threshold: options.threshold ?? 0.1,
-      });
-      const ratio = count / (width * height);
-      const pass = ratio <= (options.maxDiffRatio ?? 0.001);
+      const name = options.comparatorName ?? config.comparatorName ?? 'pixelmatch';
+      const comparator = comparators[name];
+      if (!comparator) throw new Error(`unknown comparator "${name}"; known: ${Object.keys(comparators).join(', ')}`);
+      const inherited = name === (config.comparatorName ?? 'pixelmatch') ? config.comparatorOptions : undefined;
+      const { pass, diff, message } = comparator(baseline, actual, {
+        ...inherited,
+        ...options.comparatorOptions,
+        createDiff: true,
+      } as never);
       const stem = join(dir, file ? basename(file, extname(file)) : label.replace(/[^\w-]+/g, '_'));
-      if (!pass) await Promise.all([writeImage(`${stem}.actual.png`, actual), writeImage(`${stem}.diff.png`, diff)]);
-      return result(pass, `${label}: ${count} pixels (${(ratio * 100).toFixed(3)}%) differ; see ${stem}.diff.png`);
+      const seeDiff = !pass && diff ? `; see ${stem}.diff.png` : '';
+      if (!pass)
+        await Promise.all([writeImage(`${stem}.actual.png`, actual), diff && writeImage(`${stem}.diff.png`, diff)]);
+      return result(pass, `${label}: ${message ?? (pass ? 'matches' : 'differs')}${seeDiff}`);
     },
   });
 }
