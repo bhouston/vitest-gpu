@@ -20,6 +20,8 @@ pnpm add -D vitest vitest-environment-webgpu-node
 
 ```ts
 // vitest.config.ts
+import { defineConfig } from 'vitest/config';
+
 export default defineConfig({
   test: {
     environment: 'webgpu-node',
@@ -30,9 +32,8 @@ export default defineConfig({
 
 ### TypeScript types
 
-The package selects WebGPU declarations for your compiler version. TypeScript 5 receives the bundled
-`@webgpu/types` dependency; TypeScript 6 and later use WebGPU declarations from their DOM library. Include
-the DOM library and keep `skipLibCheck` disabled to catch declaration conflicts:
+Requires TypeScript 6 or later, whose DOM library declares the WebGPU API. Include the DOM library in
+`lib` (a project without it can add `@webgpu/types` to `types` instead):
 
 ```json
 {

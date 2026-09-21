@@ -15,7 +15,7 @@
     "tsc": "pnpm -r tsc",
     "test": "pnpm build && pnpm test:types && vitest run",
     "test:coverage": "pnpm build && pnpm test:types && vitest run --coverage",
-    "test:types": "node node_modules/typescript-5/bin/tsc -p packages/vitest-environment-webgpu-node/tsconfig.type-test.json && tsc -p packages/vitest-environment-webgpu-node/tsconfig.type-test-current.json && tsc -p packages/vitest-environment-webgl-node/tsconfig.type-test-node.json && tsc -p packages/vitest-environment-webgl-node/tsconfig.type-test-dom.json",
+    "test:types": "tsc -p packages/vitest-environment-webgpu-node/tsconfig.type-test.json && tsc -p packages/vitest-environment-webgl-node/tsconfig.type-test-node.json && tsc -p packages/vitest-environment-webgl-node/tsconfig.type-test-dom.json",
     "test:watch": "vitest",
     "format": "oxfmt .",
     "lint": "oxlint .",
@@ -43,7 +43,6 @@
     "semantic-release": "^25.0.9",
     "semantic-release-monorepo": "^8.0.2",
     "typescript": "^7.0.2",
-    "typescript-5": "npm:typescript@5.9.2",
     "vite": "^8.3.0",
     "vitest": "^4.1.11"
   },
