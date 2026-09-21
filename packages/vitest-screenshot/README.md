@@ -150,3 +150,7 @@ await expect(image).toMatchScreenshot('baseline.png', {
 ```
 
 See [`demo/test/screenshots`](../../demo/test/screenshots) for every source, format and comparator combination.
+
+## Author
+
+Created by [Ben Houston](https://ben3d.ca) and sponsored by [Land of Assets](https://landofassets.com).

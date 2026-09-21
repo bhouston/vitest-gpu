@@ -76,3 +76,7 @@ await expect(canvas).toMatchScreenshot('scene.png');
 `readPixels()` rejects them with an unsupported-format error. `asElement()` returns the same object and
 defaults to `HTMLCanvasElement` when DOM types are available. You can also request a library-specific type
 explicitly with `canvas.asElement<HTMLCanvasElement>()`.
+
+## Author
+
+Created by [Ben Houston](https://ben3d.ca) and sponsored by [Land of Assets](https://landofassets.com).
