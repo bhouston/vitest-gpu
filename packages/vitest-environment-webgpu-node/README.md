@@ -16,6 +16,8 @@ in [jest-gpu](https://github.com/bhouston/jest-gpu).
 pnpm add -D vitest vitest-environment-webgpu-node
 ```
 
+Type checking needs TypeScript 6 or later (see [TypeScript types](#typescript-types)).
+
 ## Usage
 
 ```ts
