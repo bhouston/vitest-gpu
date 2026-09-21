@@ -8,6 +8,10 @@ the `WebGL*` classes and a file-reading `fetch()` before each test file, and rem
 `document.createElement('canvas').getContext('webgl2')` returns a GPU-backed context, so three.js,
 regl, pixi and plain WebGL code run unchanged.
 
+Using Jest instead? See the equivalent
+[`jest-environment-webgl-node`](https://github.com/bhouston/jest-gpu/tree/main/packages/jest-environment-webgl-node)
+in [jest-gpu](https://github.com/bhouston/jest-gpu).
+
 ## Install
 
 ```sh
@@ -55,3 +59,7 @@ On Linux CI install Mesa (`apt-get install libegl1 libgles2 libgl1-mesa-dri`) an
 ## Author
 
 Created by [Ben Houston](https://ben3d.ca) and sponsored by [Land of Assets](https://landofassets.com).
+
+## License
+
+MIT
