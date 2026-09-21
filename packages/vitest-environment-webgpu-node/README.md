@@ -6,6 +6,10 @@ Real, headless WebGPU inside Vitest, with no browser. Powered by Google's Dawn t
 The environment puts `navigator.gpu` and every `GPU*` class and constant (`GPUBufferUsage`,
 `GPUShaderStage`, ...) on the global object before each test file and removes them afterwards.
 
+Using Jest instead? See the equivalent
+[`jest-environment-webgpu-node`](https://github.com/bhouston/jest-gpu/tree/main/packages/jest-environment-webgpu-node)
+in [jest-gpu](https://github.com/bhouston/jest-gpu).
+
 ## Install
 
 ```sh
@@ -80,3 +84,7 @@ explicitly with `canvas.asElement<HTMLCanvasElement>()`.
 ## Author
 
 Created by [Ben Houston](https://ben3d.ca) and sponsored by [Land of Assets](https://landofassets.com).
+
+## License
+
+MIT
