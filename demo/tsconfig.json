@@ -5,5 +5,5 @@
     "rootDir": ".",
     "types": ["node", "@webgpu/types"]
   },
-  "include": ["globals.d.ts", "test/**/*.ts"]
+  "include": ["globals.d.ts", "test/**/*.ts", "vitest.config.ts"]
 }

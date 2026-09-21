@@ -1,3 +1,5 @@
+// @vitest-environment webgl-node
+
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { loadImage, quadrants, quadrantsCanvas } from './quadrants.js';

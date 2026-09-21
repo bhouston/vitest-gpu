@@ -1,3 +1,5 @@
+// @vitest-environment webgpu-node
+
 import { expect, it } from 'vitest';
 
 // Baby step 3: run a compute shader and read the result back with mapAsync.
