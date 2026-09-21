@@ -7,6 +7,10 @@ Run real WebGL and WebGPU code inside plain Vitest, with no browser, no Playwrig
 Two Vitest environments put a GPU-backed context on `globalThis`, and a matcher diffs the pixels
 you read back against committed image baselines (png recommended; jpg, gif and webp also work).
 
+Using Jest instead? The equivalent packages live in [jest-gpu](https://github.com/bhouston/jest-gpu):
+[`jest-environment-webgpu-node`](https://github.com/bhouston/jest-gpu/tree/main/packages/jest-environment-webgpu-node)
+and [`jest-environment-webgl-node`](https://github.com/bhouston/jest-gpu/tree/main/packages/jest-environment-webgl-node).
+
 ## Render and snapshot with WebGPU
 
 Use [`vitest-environment-webgpu-node`](packages/vitest-environment-webgpu-node/README.md)

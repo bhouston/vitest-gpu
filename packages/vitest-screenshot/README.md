@@ -122,3 +122,7 @@ and `actual` are `{ width, height, data }`, `options` carries `comparatorOptions
 it with `comparatorName`.
 
 See [`demo/test/screenshots`](../../demo/test/screenshots) for every source, format and comparator combination.
+
+## License
+
+MIT
