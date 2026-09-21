@@ -1,3 +1,5 @@
+// @vitest-environment webgpu-node
+
 import { expect, it } from 'vitest';
 
 // Baby step 2: get data onto the GPU with queue.writeBuffer and queue.writeTexture.

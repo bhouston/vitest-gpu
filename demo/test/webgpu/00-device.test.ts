@@ -1,3 +1,5 @@
+// @vitest-environment webgpu-node
+
 import { expect, it } from 'vitest';
 
 // Baby step 1: is there a GPU? The environment put Dawn behind navigator.gpu.

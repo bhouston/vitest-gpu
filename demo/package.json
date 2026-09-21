@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "tsc": "tsc -p tsconfig.json"
+    "tsc": "tsc -p tsconfig.json",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@babylonjs/core": "^9.27.0",

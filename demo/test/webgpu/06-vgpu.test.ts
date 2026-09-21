@@ -1,3 +1,5 @@
+// @vitest-environment webgpu-node
+
 import { effect, frame, init, target } from 'vgpu';
 import { expect, it } from 'vitest';
 import { extendMatchers } from 'vitest-screenshot';

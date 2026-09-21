@@ -1,3 +1,5 @@
+// @vitest-environment webgl-node
+
 import { expect, it } from 'vitest';
 
 // Baby step 2: upload a texture from ImageData, then prove it arrived by rendering it into a framebuffer.

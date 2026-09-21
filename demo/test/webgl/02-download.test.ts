@@ -1,3 +1,5 @@
+// @vitest-environment webgl-node
+
 import { expect, it } from 'vitest';
 
 // Baby step 3: get data back from the GPU, from the framebuffer and from a buffer object.

@@ -1,3 +1,5 @@
+// @vitest-environment webgl-node
+
 import { describe, expect, it } from 'vitest';
 import { type Comparator, extendMatchers } from 'vitest-screenshot';
 import { quadrants } from './quadrants.js';

@@ -1,3 +1,5 @@
+// @vitest-environment webgpu-node
+
 import {
   addToScene,
   createBox,

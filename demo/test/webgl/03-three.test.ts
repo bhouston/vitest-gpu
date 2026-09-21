@@ -1,3 +1,5 @@
+// @vitest-environment webgl-node
+
 import * as THREE from 'three';
 import { expect, it } from 'vitest';
 import { extendMatchers } from 'vitest-screenshot';

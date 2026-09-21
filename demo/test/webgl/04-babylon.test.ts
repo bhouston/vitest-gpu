@@ -1,3 +1,5 @@
+// @vitest-environment webgl-node
+
 import { ArcRotateCamera, Engine, HemisphericLight, MeshBuilder, Scene, Vector3 } from '@babylonjs/core';
 import { expect, it } from 'vitest';
 import { extendMatchers } from 'vitest-screenshot';

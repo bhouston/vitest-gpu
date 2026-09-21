@@ -1,3 +1,5 @@
+// @vitest-environment webgpu-node
+
 import * as THREE from 'three/webgpu';
 import { expect, it } from 'vitest';
 import { createCanvas } from 'vitest-environment-webgpu-node';
