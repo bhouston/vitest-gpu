@@ -1,4 +1,4 @@
-import { init, installDOM, type InitOptions, type InstallDOMOptions } from '@onirenaud/node-webgl';
+import { getDisplayInfo, init, installDOM, type InitOptions, type InstallDOMOptions } from '@onirenaud/node-webgl';
 import { readFile } from 'node:fs/promises';
 import { extname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -90,7 +90,20 @@ export default {
   viteEnvironment: 'ssr',
   setup(global: typeof globalThis, { webglNode = {} }: { webglNode?: WebglNodeOptions }) {
     const { backend, api, ...dom } = webglNode;
-    if (backend || api) init({ backend, api });
+    if (backend || api) {
+      // node-webgl initialises its EGL display once per process; later options cannot change it.
+      const display = getDisplayInfo();
+      const ignored = [
+        backend && backend !== 'default' && backend !== display?.backend && `backend "${backend}"`,
+        api && api !== 'auto' && api !== display?.api && `api "${api}"`,
+      ].filter(Boolean);
+      if (display && ignored.length) {
+        console.warn(
+          `vitest-environment-webgl-node: ignoring ${ignored.join(' and ')}: the GL display was already initialised in this process (backend "${display.backend}", api "${display.api}"). Give every test file the same options, or run files in isolation.`,
+        );
+      }
+      init({ backend, api });
+    }
     const before = snapshot(global);
     const nested: { target: object; before: PropertySnapshot; changed?: Set<PropertyKey> }[] = [];
     try {

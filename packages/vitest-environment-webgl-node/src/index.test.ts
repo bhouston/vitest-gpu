@@ -1,7 +1,8 @@
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { expect, it } from 'vitest';
+import { getDisplayInfo } from '@onirenaud/node-webgl';
+import { expect, it, vi } from 'vitest';
 import environment from './index.ts';
 
 const listener = () => {};
@@ -97,5 +98,29 @@ it('honors fetch and baseDir options across repeated setups', async () => {
     expect(globalThis.fetch).toBe(originalFetch);
   } finally {
     await Promise.all([rm(firstDir, { recursive: true }), rm(secondDir, { recursive: true })]);
+  }
+});
+
+it('warns when backend or api options cannot be applied to an already-initialised display', async () => {
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  try {
+    const display = getDisplayInfo()!;
+    const same = await environment.setup(globalThis, {
+      webglNode: { backend: display.backend as never, api: display.api },
+    });
+    await same.teardown(globalThis);
+    const generic = await environment.setup(globalThis, { webglNode: { backend: 'default', api: 'auto' } });
+    await generic.teardown(globalThis);
+    expect(warn).not.toHaveBeenCalled();
+
+    const other = display.backend === 'null' ? 'swiftshader' : 'null';
+    const different = await environment.setup(globalThis, { webglNode: { backend: other } });
+    await different.teardown(globalThis);
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0]![0]).toMatch(
+      new RegExp(`ignoring backend "${other}": the GL display was already initialised .*backend "${display.backend}"`),
+    );
+  } finally {
+    warn.mockRestore();
   }
 });
