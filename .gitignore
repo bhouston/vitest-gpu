@@ -6,3 +6,4 @@ publish
 .DS_Store
 **/__screenshots__/*.actual.png
 **/__screenshots__/*.diff.png
+.claude/

@@ -22,6 +22,8 @@ pnpm add -D vitest vitest-environment-webgl-node
 
 ```ts
 // vitest.config.ts
+import { defineConfig } from 'vitest/config';
+
 export default defineConfig({
   test: {
     environment: 'webgl-node',

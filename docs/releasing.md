@@ -27,7 +27,8 @@ package directory, then configure the trusted publisher.
 
 Keep `main` as the sole integration branch. Enable merge commits and disable squash merges
 (PRs are merged with merge commits, never squashed). Protect `main` with required PRs
-and the required checks `Quality (macos-latest)`, `Quality (ubuntu-latest)` and `PR policy`.
+and the required checks `Quality (macos-latest, Node 22)`, `Quality (macos-latest, Node 26)`, `Quality (ubuntu-latest, Node 22)`,
+`Quality (ubuntu-latest, Node 26)` and `PR policy`.
 Repository rules must allow the Actions token to create `*-v*` tags.
 
 The `Release` workflow runs only through `workflow_dispatch` on `main`:
@@ -35,9 +36,10 @@ The `Release` workflow runs only through `workflow_dispatch` on `main`:
 
 ## Version baseline
 
-Packages start at `0.0.0` with no tags. The first release of each package will be computed
-by semantic-release from its commits; a `feat` commit yields `1.0.0`. To start lower, create a
-baseline tag such as `vitest-screenshot-v0.1.0` on the commit that was manually published.
+All three packages are published and tagged (`<package>-v<version>`). semantic-release computes
+each next version from the commits since that package's latest tag; the `version` field in
+`package.json` is not bumped in source. A new package starts by publishing once manually, then
+tagging that commit `<package>-v<version>` as its baseline.
 
 ## Recovery
 

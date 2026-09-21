@@ -22,7 +22,6 @@
     "directory": "packages/vitest-environment-webgpu-node"
   },
   "files": [
-    "legacy.d.ts",
     "dist/**/*.js",
     "dist/**/*.js.map",
     "dist/**/*.d.ts",
@@ -36,7 +35,6 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types@<6.0": "./legacy.d.ts",
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
@@ -49,11 +47,16 @@
     "tsc": "tsc"
   },
   "dependencies": {
-    "@webgpu/types": "^0.1.72",
     "webgpu": "^0.6.1"
   },
   "peerDependencies": {
+    "typescript": ">=6",
     "vitest": ">=3 <5"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
   },
   "engines": {
     "node": ">=20.0.0"
