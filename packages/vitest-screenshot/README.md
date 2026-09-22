@@ -1,5 +1,9 @@
 # vitest-screenshot
 
+[![npm version][npm-badge]][npm-url]
+[![npm downloads][downloads-badge]][npm-url]
+[![Tests][tests-badge]][tests-url]
+
 `await expect(image).toMatchScreenshot(reference)`: compare an image against a baseline committed next to your
 tests, with the same options as Vitest browser mode's `toMatchScreenshot`. Backend-agnostic: feed it a canvas from
 [`vitest-environment-webgl-node`](../vitest-environment-webgl-node) or
@@ -158,3 +162,9 @@ Created by [Ben Houston](https://ben3d.ca) and sponsored by [Land of Assets](htt
 ## License
 
 MIT
+
+[npm-badge]: https://img.shields.io/npm/v/vitest-screenshot.svg
+[npm-url]: https://www.npmjs.com/package/vitest-screenshot
+[downloads-badge]: https://img.shields.io/npm/dm/vitest-screenshot.svg
+[tests-badge]: https://github.com/bhouston/vitest-gpu/actions/workflows/ci.yml/badge.svg
+[tests-url]: https://github.com/bhouston/vitest-gpu/actions/workflows/ci.yml

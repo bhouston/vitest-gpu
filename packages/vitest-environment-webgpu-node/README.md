@@ -1,5 +1,9 @@
 # vitest-environment-webgpu-node
 
+[![npm version][npm-badge]][npm-url]
+[![npm downloads][downloads-badge]][npm-url]
+[![Tests][tests-badge]][tests-url]
+
 Real, headless WebGPU inside Vitest, with no browser. Powered by Google's Dawn through the
 [`webgpu`](https://github.com/dawn-gpu/node-webgpu) npm package.
 
@@ -91,3 +95,9 @@ Created by [Ben Houston](https://ben3d.ca) and sponsored by [Land of Assets](htt
 ## License
 
 MIT
+
+[npm-badge]: https://img.shields.io/npm/v/vitest-environment-webgpu-node.svg
+[npm-url]: https://www.npmjs.com/package/vitest-environment-webgpu-node
+[downloads-badge]: https://img.shields.io/npm/dm/vitest-environment-webgpu-node.svg
+[tests-badge]: https://github.com/bhouston/vitest-gpu/actions/workflows/ci.yml/badge.svg
+[tests-url]: https://github.com/bhouston/vitest-gpu/actions/workflows/ci.yml
