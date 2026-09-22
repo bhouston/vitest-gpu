@@ -1,5 +1,9 @@
 # vitest-environment-webgl-node
 
+[![npm version][npm-badge]][npm-url]
+[![npm downloads][downloads-badge]][npm-url]
+[![Tests][tests-badge]][tests-url]
+
 Real, headless WebGL 1 and WebGL 2 inside Vitest, with no browser. Powered by
 [`@onirenaud/node-webgl`](https://github.com/RenaudRohlinger/node-webgl) (Chrome's ANGLE, statically linked).
 
@@ -65,3 +69,9 @@ Created by [Ben Houston](https://ben3d.ca) and sponsored by [Land of Assets](htt
 ## License
 
 MIT
+
+[npm-badge]: https://img.shields.io/npm/v/vitest-environment-webgl-node.svg
+[npm-url]: https://www.npmjs.com/package/vitest-environment-webgl-node
+[downloads-badge]: https://img.shields.io/npm/dm/vitest-environment-webgl-node.svg
+[tests-badge]: https://github.com/bhouston/vitest-gpu/actions/workflows/ci.yml/badge.svg
+[tests-url]: https://github.com/bhouston/vitest-gpu/actions/workflows/ci.yml
