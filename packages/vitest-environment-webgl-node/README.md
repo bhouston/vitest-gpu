@@ -19,6 +19,11 @@ Using Jest instead? See the equivalent
 [`jest-environment-webgl-node`](https://github.com/bhouston/jest-gpu/tree/main/packages/jest-environment-webgl-node)
 in [jest-gpu](https://github.com/bhouston/jest-gpu).
 
+## Stability
+
+As of 1.0.0, the public API (the environment export and its options) is considered stable.
+Breaking changes will be released as a new major version.
+
 ## Install
 
 ```sh
