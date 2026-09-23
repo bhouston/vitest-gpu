@@ -5,7 +5,10 @@
 [![Tests][tests-badge]][tests-url]
 
 `await expect(image).toMatchScreenshot(reference)`: compare an image against a baseline committed next to your
-tests, with the same options as Vitest browser mode's `toMatchScreenshot`. Backend-agnostic: feed it a canvas from
+tests, with the same options as Vitest browser mode's `toMatchScreenshot`. Pair it with a native GPU
+environment and tests run up to 2.4x faster than in a browser — see the
+[blog post](https://ben3d.ca/blog/native-gpu-testing-for-vitest-and-jest) for details.
+Backend-agnostic: feed it a canvas from
 [`vitest-environment-webgl-node`](../vitest-environment-webgl-node) or
 [`vitest-environment-webgpu-node`](../vitest-environment-webgpu-node), an `ImageData`, a WebGPU texture
 readback, or pixels from a real browser.

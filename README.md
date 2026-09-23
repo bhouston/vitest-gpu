@@ -4,6 +4,8 @@
 [![Coverage][coverage-badge]][coverage-url]
 
 Run real WebGL and WebGPU code inside plain Vitest, with no browser, no Playwright and no mocks.
+Native GPU testing is up to 2.4x faster than running the same tests in a browser — see the
+[blog post](https://ben3d.ca/blog/native-gpu-testing-for-vitest-and-jest) for details.
 Two Vitest environments put a GPU-backed context on `globalThis`, and a matcher diffs the pixels
 you read back against committed image baselines (png recommended; jpg, gif and webp also work).
 
