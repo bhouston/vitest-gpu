@@ -4,7 +4,10 @@
 [![npm downloads][downloads-badge]][npm-url]
 [![Tests][tests-badge]][tests-url]
 
-Real, headless WebGL 1 and WebGL 2 inside Vitest, with no browser. Powered by
+Real, headless WebGL 1 and WebGL 2 inside Vitest, with no browser. Native GPU testing is up to
+2.4x faster than running the same tests in a browser — see the
+[blog post](https://ben3d.ca/blog/native-gpu-testing-for-vitest-and-jest) for details.
+Powered by
 [`@onirenaud/node-webgl`](https://github.com/RenaudRohlinger/node-webgl) (Chrome's ANGLE, statically linked).
 
 The environment installs `window`, `document`, `HTMLCanvasElement`, `Image`, `requestAnimationFrame`,
