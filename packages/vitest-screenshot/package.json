@@ -1,6 +1,6 @@
 {
   "name": "vitest-screenshot",
-  "version": "0.1.0",
+  "version": "2.0.1",
   "description": "toMatchScreenshot(): pixel-diff a canvas, Image or ImageData against a committed png/jpg/gif/webp baseline in Vitest",
   "keywords": [
     "matcher",
