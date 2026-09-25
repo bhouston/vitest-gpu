@@ -1,4 +1,4 @@
-import type { Environment } from 'vitest/environments';
+import type { Environment } from 'vitest/runtime';
 import { create, globals } from 'webgpu';
 import { HeadlessCanvas } from './canvas.js';
 

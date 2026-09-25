@@ -51,7 +51,7 @@
   },
   "peerDependencies": {
     "typescript": ">=6",
-    "vitest": ">=3 <5"
+    "vitest": ">=4 <6"
   },
   "peerDependenciesMeta": {
     "typescript": {

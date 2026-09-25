@@ -5,3 +5,8 @@ allowBuilds:
   '@onirenaud/node-webgl': true
   '@vgpu/adapter-node': false
   webgpu: true
+minimumReleaseAgeExclude:
+  - '@vitest/coverage-v8'
+  - '@vitest/mocker'
+  - '@vitest/spy'
+  - vitest
