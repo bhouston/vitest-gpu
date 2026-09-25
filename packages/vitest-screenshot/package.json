@@ -28,8 +28,7 @@
     "dist/**/*.d.ts",
     "dist/**/*.d.ts.map",
     "src/**/*.ts",
-    "!src/**/*.test.ts",
-    "CHANGELOG.md"
+    "!src/**/*.test.ts"
   ],
   "type": "module",
   "main": "./dist/index.js",
