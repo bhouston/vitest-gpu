@@ -1,19 +1,22 @@
-name: CI
+name: ci
 
 on:
   push:
     branches: [main]
   pull_request:
     branches: [main]
-    types: [opened, synchronize, reopened, edited, ready_for_review]
   workflow_call:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  quality:
-    name: Quality (${{ matrix.os }}, Node ${{ matrix.node }})
+  ci:
+    name: ci (${{ matrix.os }}, Node ${{ matrix.node }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -25,6 +28,8 @@ jobs:
       LIBGL_ALWAYS_SOFTWARE: '1'
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libegl1 libgles2 libgl1-mesa-dri mesa-vulkan-drivers
       - uses: pnpm/action-setup@v5
@@ -33,52 +38,35 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm test:workflow
-      - run: pnpm lint
+      - run: pnpm build
       - run: pnpm tsc
-      - run: pnpm test:coverage
-      - run: pnpm audit --audit-level=high
+      - run: pnpm test:types
+      - run: pnpm lint
+      - name: Check formatting
+        run: pnpm exec oxfmt --check .
+      - run: pnpm test --coverage
+      # --- repository-specific steps (package-content check, size budget, e2e, docs, ...) go here ---
+      - run: pnpm test:workflow
       - run: pnpm package:check
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: quality-reports-${{ matrix.os }}-node${{ matrix.node }}
           path: |
             coverage/
             **/__screenshots__/*.actual.png
             **/__screenshots__/*.diff.png
-      - name: Upload coverage
-        if: runner.os == 'macOS' && matrix.node == 26
-        uses: codecov/codecov-action@v5
+          if-no-files-found: ignore
+      - name: Audit dependencies
+        id: audit
+        continue-on-error: true
+        run: pnpm audit --audit-level=high
+      - name: Flag audit findings
+        if: steps.audit.outcome == 'failure'
+        run: echo '::warning::Dependency audit found vulnerabilities or could not reach the registry. Review the audit step.'
+      - uses: codecov/codecov-action@v5
+        if: ${{ !cancelled() && runner.os == 'macOS' && matrix.node == 26 && hashFiles('coverage/lcov.info') != '' }}
         with:
-          files: coverage/lcov.info
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/lcov.info
           fail_ci_if_error: false
-
-  policy:
-    name: PR policy
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-      - uses: pnpm/action-setup@v5
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - name: Validate PR title, commits, and workflow
-        env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-          PR_BODY: ${{ github.event.pull_request.body }}
-          PR_BASE: ${{ github.base_ref }}
-          PR_HEAD: ${{ github.head_ref }}
-          PR_HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
-          PR_REPO: ${{ github.repository }}
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: |
-          printf '%s\n' "$PR_TITLE" | pnpm exec commitlint
-          pnpm exec commitlint --from "$BASE_SHA" --to "$HEAD_SHA"
-          node scripts/check-pr-policy.mjs

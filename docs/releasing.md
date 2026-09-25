@@ -27,8 +27,8 @@ package directory, then configure the trusted publisher.
 
 Keep `main` as the sole integration branch. Enable merge commits and disable squash merges
 (PRs are merged with merge commits, never squashed). Protect `main` with required PRs
-and the required checks `Quality (macos-latest, Node 22)`, `Quality (macos-latest, Node 26)`, `Quality (ubuntu-latest, Node 22)`,
-`Quality (ubuntu-latest, Node 26)` and `PR policy`.
+and the required checks `ci (macos-latest, Node 22)`, `ci (macos-latest, Node 26)`, `ci (ubuntu-latest, Node 22)`,
+`ci (ubuntu-latest, Node 26)` and `pr-policy / contribution`.
 Repository rules must allow the Actions token to create `*-v*` tags.
 
 The `Release` workflow runs only through `workflow_dispatch` on `main`:
