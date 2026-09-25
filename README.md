@@ -113,9 +113,18 @@ pnpm install
 pnpm test            # builds packages, then runs every project including the demo
 pnpm test:coverage
 UPDATE_SCREENSHOTS=1 pnpm test   # rewrite baselines
+pnpm package:check   # validates the npm package maps and dry-run packs each package
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the branch, commit and release workflow.
+The native GPU packages are real dependencies, so tests need a GPU or a software rasterizer
+(Metal on macOS, Mesa llvmpipe on Linux). Coverage must stay at or above 95% for statements,
+branches, functions, and lines.
+
+Name branches `<type>/<issue-number>-<short-description>` (for example `feat/42-batch-export`);
+CI's PR policy check (`scripts/check-pr-policy.mjs`) enforces this pattern and rejects PRs that
+don't follow it.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the full branch, commit and release workflow.
 
 ## Author
 
