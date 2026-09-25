@@ -3,6 +3,7 @@
 [![npm version][npm-badge]][npm-url]
 [![npm downloads][downloads-badge]][npm-url]
 [![Tests][tests-badge]][tests-url]
+[![Discord][discord-badge]][discord-url]
 
 Real, headless WebGL 1 and WebGL 2 inside Vitest, with no browser. Native GPU testing is up to
 2.4x faster than running the same tests in a browser — see the
@@ -83,3 +84,5 @@ MIT
 [downloads-badge]: https://img.shields.io/npm/dm/vitest-environment-webgl-node.svg
 [tests-badge]: https://github.com/bhouston/vitest-gpu/actions/workflows/ci.yml/badge.svg
 [tests-url]: https://github.com/bhouston/vitest-gpu/actions/workflows/ci.yml
+[discord-badge]: https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white
+[discord-url]: https://discord.gg/fwupDN493R
