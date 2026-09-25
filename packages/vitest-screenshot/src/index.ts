@@ -74,7 +74,10 @@ export type ScreenshotConfig = ComparatorSelection & {
 };
 
 declare module 'vitest' {
-  interface Assertion {
+  // Vitest 5's `Assertion` gained a second type parameter (`R`); this augmentation must declare
+  // the same arity TypeScript sees for the installed Vitest major, or the two `interface`
+  // declarations fail to merge. Vitest 4/3 ignore the extra defaulted parameter.
+  interface Assertion<R extends void | Promise<void> = void, T = unknown> {
     toMatchScreenshot(reference: Reference, options?: ScreenshotOptions): Promise<void>;
   }
 }

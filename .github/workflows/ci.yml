@@ -70,3 +70,38 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: coverage/lcov.info
           fail_ci_if_error: false
+
+  vitest-compat:
+    name: vitest ${{ matrix.vitest }} compatibility
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # vitest 3 is intentionally excluded: vitest-environment-webgl-node and
+        # vitest-environment-webgpu-node only implement the `viteEnvironment` custom
+        # environment hook (vitest >=4); vitest 3 only understands the removed
+        # `transformMode` hook, so it cannot load either environment at all.
+        vitest: [4, 5]
+    env:
+      LIBGL_ALWAYS_SOFTWARE: '1'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - run: sudo apt-get update && sudo apt-get install -y libegl1 libgles2 libgl1-mesa-dri mesa-vulkan-drivers
+      - uses: pnpm/action-setup@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Override the workspace to vitest ${{ matrix.vitest }}
+        # A pnpm override (not `pnpm add -D -w`) so every workspace member -- including demo/package.json's
+        # own pinned vitest devDependency -- resolves the matrix version, not just the root.
+        run: |
+          printf 'overrides:\n  vitest: "%s"\n  "@vitest/coverage-v8": "%s"\n' "$V" "$V" >> pnpm-workspace.yaml
+          pnpm install --no-frozen-lockfile
+        env:
+          V: ${{ matrix.vitest }}
+      - run: pnpm test

@@ -2,7 +2,7 @@ import { getDisplayInfo, init, installDOM, type InitOptions, type InstallDOMOpti
 import { readFile } from 'node:fs/promises';
 import { extname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { Environment } from 'vitest/environments';
+import type { Environment } from 'vitest/runtime';
 
 /** Set under `test.environmentOptions.webglNode` in your Vitest config. */
 export type WebglNodeOptions = InitOptions & InstallDOMOptions;
