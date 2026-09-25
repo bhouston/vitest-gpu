@@ -67,6 +67,20 @@ it('runs a compute shader', async () => {
 `dawnOptions` are passed straight to Dawn: `backend=<null|d3d11|d3d12|metal|vulkan|opengl|opengles>`,
 `adapter=<name>`, `enable-dawn-features=...`, `disable-dawn-features=...`.
 
+## Linux and CI
+
+Dawn needs Vulkan. On a Linux box or CI runner without a real GPU, install Mesa's software Vulkan
+driver (lavapipe) and force software rendering:
+
+```sh
+sudo apt-get update && sudo apt-get install -y libegl1 libgles2 libgl1-mesa-dri mesa-vulkan-drivers
+export LIBGL_ALWAYS_SOFTWARE=1
+```
+
+This repo's own [CI workflow](../../.github/workflows/ci.yml) does exactly this, so WebGPU tests run
+for real (not mocked) on `ubuntu-latest` on every PR. macOS runners use Dawn's Metal backend and need no
+extra setup.
+
 ## Canvas
 
 Dawn has no `<canvas>`, so the environment ships a headless one whose `getContext('webgpu')` returns a
