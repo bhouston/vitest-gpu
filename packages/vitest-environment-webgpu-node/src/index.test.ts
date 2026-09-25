@@ -1,13 +1,38 @@
 import { expect, it } from 'vitest';
 import environment, { HeadlessCanvas } from './index.ts';
 
+/** Shape the environment's `setup()` shims onto the plain object passed as `global` in these tests. */
+type ShimmedGlobal = Record<string, unknown> & {
+  GPU: string;
+  GPUBufferUsage: { MAP_READ: number; COPY_DST: number };
+  GPUMapMode: { READ: number };
+  HTMLCanvasElement: typeof HeadlessCanvas;
+  document: {
+    createElement: (tag: string) => unknown;
+    createElementNS: (namespace: string, tag: string) => unknown;
+    addEventListener: () => void;
+    removeEventListener: () => void;
+  };
+  self: unknown;
+  window: {
+    devicePixelRatio: number;
+    addEventListener: () => void;
+    removeEventListener: () => void;
+    requestAnimationFrame: (callback: (time: number) => void) => number;
+  };
+  requestAnimationFrame: (callback: (time: number) => void) => number;
+  cancelAnimationFrame: (id: number) => void;
+  navigator: { gpu: { requestAdapter: () => Promise<GPUAdapter | null> } };
+};
+
 it('declares the SSR loader metadata required by Vitest 3 and 4', () => {
   expect(environment.viteEnvironment).toBe('ssr');
 });
 
 it('adds navigator.gpu backed by Dawn, the GPU* globals and a canvas shim, and removes them on teardown', async () => {
-  const global: Record<string, any> = { GPU: 'kept' };
-  const { teardown } = await environment.setup(global, { webgpuNode: { dawnOptions: [] } });
+  const raw: Record<string, unknown> = { GPU: 'kept' };
+  const { teardown } = await environment.setup(raw, { webgpuNode: { dawnOptions: [] } });
+  const global = raw as ShimmedGlobal;
   expect(global.GPU).toBe('kept');
   expect(global.GPUBufferUsage.MAP_READ).toBe(1);
   expect(global.HTMLCanvasElement).toBe(HeadlessCanvas);
@@ -25,7 +50,7 @@ it('adds navigator.gpu backed by Dawn, the GPU* globals and a canvas shim, and r
   global.window.removeEventListener();
   const adapter = await global.navigator.gpu.requestAdapter();
   expect(adapter).not.toBeNull();
-  const device = await adapter.requestDevice();
+  const device = await adapter!.requestDevice();
   const buffer = device.createBuffer({
     size: 16,
     usage: global.GPUBufferUsage.COPY_DST | global.GPUBufferUsage.MAP_READ,
@@ -35,17 +60,18 @@ it('adds navigator.gpu backed by Dawn, the GPU* globals and a canvas shim, and r
   expect(Array.from(new Uint32Array(buffer.getMappedRange()))).toEqual([1, 2, 3, 4]);
   buffer.unmap();
   device.destroy();
-  await teardown(global);
-  expect(global).toEqual({ GPU: 'kept' });
+  await teardown(raw);
+  expect(raw).toEqual({ GPU: 'kept' });
 });
 
 it('reuses an existing navigator object and defaults options', async () => {
   const navigator = { userAgent: 'x' };
-  const global: Record<string, any> = { navigator };
-  const { teardown } = await environment.setup(global, {});
+  const raw: Record<string, unknown> = { navigator };
+  const { teardown } = await environment.setup(raw, {});
+  const global = raw as ShimmedGlobal;
   expect(global.navigator).toBe(navigator);
   expect(typeof global.navigator.gpu.requestAdapter).toBe('function');
-  await teardown(global);
+  await teardown(raw);
   expect(navigator).toEqual({ userAgent: 'x' });
 });
 
@@ -59,31 +85,34 @@ it('restores the exact navigator.gpu descriptor', async () => {
     configurable: true,
   };
   Object.defineProperty(navigator, 'gpu', descriptor);
-  const global: Record<string, any> = { navigator };
-  const { teardown } = await environment.setup(global, {});
+  const raw: Record<string, unknown> = { navigator };
+  const { teardown } = await environment.setup(raw, {});
+  const global = raw as ShimmedGlobal;
   expect(global.navigator.gpu).not.toBe(originalGpu);
-  await teardown(global);
+  await teardown(raw);
   expect(Object.getOwnPropertyDescriptor(navigator, 'gpu')).toEqual(descriptor);
 });
 
 it('unwinds nested setups in teardown order', async () => {
   const navigator = {};
-  const global: Record<string, any> = { navigator };
-  const first = await environment.setup(global, {});
+  const raw: Record<string, unknown> = { navigator };
+  const global = raw as ShimmedGlobal;
+  const first = await environment.setup(raw, {});
   const firstGpu = global.navigator.gpu;
-  const second = await environment.setup(global, {});
+  const second = await environment.setup(raw, {});
   expect(global.navigator.gpu).not.toBe(firstGpu);
-  await second.teardown(global);
+  await second.teardown(raw);
   expect(global.navigator.gpu).toBe(firstGpu);
-  await first.teardown(global);
+  await first.teardown(raw);
   expect(navigator).toEqual({});
 });
 
 it('removes shims when setup fails after partially installing them', async () => {
   const navigator = {};
   Object.defineProperty(navigator, 'gpu', { value: 'locked', configurable: false });
-  const global: Record<string, any> = { navigator };
-  expect(() => environment.setup(global, {})).toThrow(TypeError);
-  expect(global).toEqual({ navigator });
+  const raw: Record<string, unknown> = { navigator };
+  const global = raw as ShimmedGlobal;
+  expect(() => environment.setup(raw, {})).toThrow(TypeError);
+  expect(raw).toEqual({ navigator });
   expect(global.navigator.gpu).toBe('locked');
 });
