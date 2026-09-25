@@ -2,6 +2,7 @@
 
 [![Tests][tests-badge]][tests-url]
 [![Coverage][coverage-badge]][coverage-url]
+[![Discord][discord-badge]][discord-url]
 
 Run real WebGL and WebGPU code inside plain Vitest, with no browser, no Playwright and no mocks.
 Native GPU testing is up to 2.4x faster than running the same tests in a browser — see the
@@ -128,3 +129,5 @@ MIT
 [tests-url]: https://github.com/bhouston/vitest-gpu/actions/workflows/ci.yml
 [coverage-badge]: https://codecov.io/gh/bhouston/vitest-gpu/graph/badge.svg
 [coverage-url]: https://codecov.io/gh/bhouston/vitest-gpu
+[discord-badge]: https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white
+[discord-url]: https://discord.gg/fwupDN493R

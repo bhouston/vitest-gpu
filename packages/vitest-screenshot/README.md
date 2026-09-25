@@ -3,6 +3,7 @@
 [![npm version][npm-badge]][npm-url]
 [![npm downloads][downloads-badge]][npm-url]
 [![Tests][tests-badge]][tests-url]
+[![Discord][discord-badge]][discord-url]
 
 `await expect(image).toMatchScreenshot(reference)`: compare an image against a baseline committed next to your
 tests, with the same options as Vitest browser mode's `toMatchScreenshot`. Pair it with a native GPU
@@ -171,3 +172,5 @@ MIT
 [downloads-badge]: https://img.shields.io/npm/dm/vitest-screenshot.svg
 [tests-badge]: https://github.com/bhouston/vitest-gpu/actions/workflows/ci.yml/badge.svg
 [tests-url]: https://github.com/bhouston/vitest-gpu/actions/workflows/ci.yml
+[discord-badge]: https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white
+[discord-url]: https://discord.gg/fwupDN493R
