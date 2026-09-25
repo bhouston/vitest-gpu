@@ -48,7 +48,6 @@ const restore = (properties: SavedProperty[]): void => {
 
 export default {
   name: 'webgpu-node',
-  transformMode: 'ssr',
   viteEnvironment: 'ssr',
   setup(global: Record<string, unknown>, { webgpuNode = {} }: { webgpuNode?: WebgpuNodeOptions }) {
     const shims = { ...globals, ...domShims() } as Record<string, unknown>;

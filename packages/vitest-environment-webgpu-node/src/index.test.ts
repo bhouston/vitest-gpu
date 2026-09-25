@@ -2,7 +2,6 @@ import { expect, it } from 'vitest';
 import environment, { HeadlessCanvas } from './index.ts';
 
 it('declares the SSR loader metadata required by Vitest 3 and 4', () => {
-  expect(environment.transformMode).toBe('ssr');
   expect(environment.viteEnvironment).toBe('ssr');
 });
 

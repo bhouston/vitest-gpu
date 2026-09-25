@@ -86,7 +86,6 @@ const installFetch = (global: typeof globalThis, baseDir: string): void => {
 
 export default {
   name: 'webgl-node',
-  transformMode: 'ssr',
   viteEnvironment: 'ssr',
   setup(global: typeof globalThis, { webglNode = {} }: { webglNode?: WebglNodeOptions }) {
     const { backend, api, ...dom } = webglNode;

@@ -8,7 +8,6 @@ import environment from './index.ts';
 const listener = () => {};
 
 it('declares the SSR loader metadata required by Vitest 3 and 4', () => {
-  expect(environment.transformMode).toBe('ssr');
   expect(environment.viteEnvironment).toBe('ssr');
 });
 
