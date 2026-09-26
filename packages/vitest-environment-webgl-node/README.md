@@ -31,6 +31,8 @@ Breaking changes will be released as a new major version.
 pnpm add -D vitest vitest-environment-webgl-node
 ```
 
+Requires Vitest 4 or 5.
+
 ## Usage
 
 ```ts
