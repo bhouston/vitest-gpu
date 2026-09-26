@@ -20,7 +20,7 @@ readback, or pixels from a real browser.
 pnpm add -D vitest vitest-screenshot
 ```
 
-Requires Vitest 4 or 5.
+Requires Vitest 4 or 5. Vitest 3 is not supported.
 
 ## Usage
 

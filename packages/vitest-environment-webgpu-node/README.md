@@ -24,7 +24,7 @@ in [jest-gpu](https://github.com/bhouston/jest-gpu).
 pnpm add -D vitest vitest-environment-webgpu-node
 ```
 
-Requires Vitest 4 or 5. Type checking needs TypeScript 6 or later (see [TypeScript types](#typescript-types)).
+Requires Vitest 4 or 5 (Vitest 3 is not supported). Type checking needs TypeScript 6 or later (see [TypeScript types](#typescript-types)).
 
 ## Usage
 

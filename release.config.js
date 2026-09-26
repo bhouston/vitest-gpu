@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 // Packages published to npm. No interdependencies among them, so order doesn't matter.
@@ -21,6 +22,26 @@ export default {
     // instead of each package's own tarball. Pack explicitly below, once all three
     // packages have their final bumped version.
     ...packages.map((path) => ['@anolilab/semantic-release-pnpm', { pkgRoot: path }]),
+    {
+      // Guards against the failure mode where a computed version was already published
+      // (e.g. the tag baseline lagged npm): @anolilab/semantic-release-pnpm treats npm's
+      // "cannot publish over previously published version" 403 as "already published,
+      // skipping" and the release still reports success. Fail loudly instead.
+      verifyRelease: (pluginConfig, { nextRelease }) => {
+        for (const path of packages) {
+          const { name } = JSON.parse(readFileSync(resolve(path, 'package.json'), 'utf8'));
+          try {
+            execFileSync('npm', ['view', `${name}@${nextRelease.version}`, 'version'], {
+              stdio: 'pipe',
+            });
+          } catch {
+            // Nonzero exit (e.g. npm's E404) means that version isn't published yet, as expected.
+            continue;
+          }
+          throw new Error(`${name}@${nextRelease.version} is already published on npm.`);
+        }
+      },
+    },
     {
       prepare: () => {
         // Absolute destination: `pnpm --dir <path>` changes pnpm's cwd, so a relative
