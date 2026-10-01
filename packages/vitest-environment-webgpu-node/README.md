@@ -118,7 +118,7 @@ sudo apt-get update && sudo apt-get install -y libegl1 libgles2 libgl1-mesa-dri 
 export LIBGL_ALWAYS_SOFTWARE=1
 ```
 
-This repo's own [CI workflow](../../.github/workflows/ci.yml) does exactly this, so WebGPU tests run
+This repo's own [CI workflow](https://github.com/bhouston/vitest-gpu/blob/main/.github/workflows/ci.yml) does exactly this, so WebGPU tests run
 for real (not mocked) on `ubuntu-latest` on every PR. macOS runners use Dawn's Metal backend and need no
 extra setup.
 
@@ -141,7 +141,7 @@ await expect(canvas).toMatchScreenshot('scene.png');
 ```
 
 `readPixels()` returns `{ width, height, data }` RGBA8 pixels, ready for
-[`vitest-screenshot`](../vitest-screenshot). Readback supports `rgba8unorm`, `rgba8unorm-srgb`,
+[`vitest-screenshot`](https://github.com/bhouston/vitest-gpu/tree/main/packages/vitest-screenshot). Readback supports `rgba8unorm`, `rgba8unorm-srgb`,
 `bgra8unorm`, and `bgra8unorm-srgb`; other canvas formats remain valid for rendering but
 `readPixels()` rejects them with an unsupported-format error. `asElement()` returns the same object and
 defaults to `HTMLCanvasElement` when DOM types are available. You can also request a library-specific type
@@ -149,15 +149,15 @@ explicitly with `canvas.asElement<HTMLCanvasElement>()`.
 
 ## Image snapshots
 
-`await expect(canvas).toMatchScreenshot('scene.png')` comes from [`vitest-screenshot`](../vitest-screenshot).
+`await expect(canvas).toMatchScreenshot('scene.png')` comes from [`vitest-screenshot`](https://github.com/bhouston/vitest-gpu/tree/main/packages/vitest-screenshot).
 Call `extendMatchers()` from it once, then pass the canvas as in the example above.
 
 ## See also
 
-- [`vitest-environment-webgl-node`](../vitest-environment-webgl-node) for headless WebGL.
-- [`vitest-screenshot`](../vitest-screenshot) for `toMatchScreenshot()`.
-- [`demo/`](../../demo/test/webgpu) for device, upload, readback, triangle, three.js, Babylon Lite and vgpu tests,
-  and the [repository README](../../README.md).
+- [`vitest-environment-webgl-node`](https://github.com/bhouston/vitest-gpu/tree/main/packages/vitest-environment-webgl-node) for headless WebGL.
+- [`vitest-screenshot`](https://github.com/bhouston/vitest-gpu/tree/main/packages/vitest-screenshot) for `toMatchScreenshot()`.
+- [`demo/`](https://github.com/bhouston/vitest-gpu/tree/main/demo/test/webgpu) for device, upload, readback, triangle, three.js, Babylon Lite and vgpu tests,
+  and the [repository README](https://github.com/bhouston/vitest-gpu#readme).
 
 ## Author
 

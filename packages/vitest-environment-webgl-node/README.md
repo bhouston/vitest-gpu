@@ -115,7 +115,7 @@ On Linux CI install Mesa (`apt-get install libegl1 libgles2 libgl1-mesa-dri`) an
 
 ## Image snapshots
 
-Pair with [`vitest-screenshot`](../vitest-screenshot) to diff the canvas against a committed baseline:
+Pair with [`vitest-screenshot`](https://github.com/bhouston/vitest-gpu/tree/main/packages/vitest-screenshot) to diff the canvas against a committed baseline:
 
 ```ts
 import * as THREE from 'three';
@@ -141,10 +141,10 @@ it('renders a cube', async () => {
 
 ## See also
 
-- [`vitest-environment-webgpu-node`](../vitest-environment-webgpu-node) for headless WebGPU.
-- [`vitest-screenshot`](../vitest-screenshot) for `toMatchScreenshot()`.
-- [`demo/`](../../demo/test/webgl) for WebGL contexts, uploads, readbacks, three.js and Babylon.js tests, and the
-  [repository README](../../README.md).
+- [`vitest-environment-webgpu-node`](https://github.com/bhouston/vitest-gpu/tree/main/packages/vitest-environment-webgpu-node) for headless WebGPU.
+- [`vitest-screenshot`](https://github.com/bhouston/vitest-gpu/tree/main/packages/vitest-screenshot) for `toMatchScreenshot()`.
+- [`demo/`](https://github.com/bhouston/vitest-gpu/tree/main/demo/test/webgl) for WebGL contexts, uploads, readbacks, three.js and Babylon.js tests, and the
+  [repository README](https://github.com/bhouston/vitest-gpu#readme).
 
 ## Author
 

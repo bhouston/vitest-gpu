@@ -42,8 +42,8 @@ it('clears to red', async () => {
 
 The first local run writes `__screenshots__/red.png`; commit it, and CI fails if it is missing or differs.
 Backend-agnostic: feed it a canvas from
-[`vitest-environment-webgl-node`](../vitest-environment-webgl-node) or
-[`vitest-environment-webgpu-node`](../vitest-environment-webgpu-node) (`createCanvas()` there), an `ImageData`,
+[`vitest-environment-webgl-node`](https://github.com/bhouston/vitest-gpu/tree/main/packages/vitest-environment-webgl-node) or
+[`vitest-environment-webgpu-node`](https://github.com/bhouston/vitest-gpu/tree/main/packages/vitest-environment-webgpu-node) (`createCanvas()` there), an `ImageData`,
 a WebGPU texture readback, or pixels from a real browser. With WebGPU, use `environment: 'webgpu-node'` and
 `createCanvas()`; the same assertion works.
 
@@ -204,13 +204,13 @@ await expect(image).toMatchScreenshot('baseline.png', {
 });
 ```
 
-See [`demo/test/screenshots`](../../demo/test/screenshots) for every source, format and comparator combination.
+See [`demo/test/screenshots`](https://github.com/bhouston/vitest-gpu/tree/main/demo/test/screenshots) for every source, format and comparator combination.
 
 ## See also
 
-- [`vitest-environment-webgl-node`](../vitest-environment-webgl-node) and
-  [`vitest-environment-webgpu-node`](../vitest-environment-webgpu-node) provide the canvases to compare.
-- [`demo/test/screenshots`](../../demo/test/screenshots) and the [repository README](../../README.md).
+- [`vitest-environment-webgl-node`](https://github.com/bhouston/vitest-gpu/tree/main/packages/vitest-environment-webgl-node) and
+  [`vitest-environment-webgpu-node`](https://github.com/bhouston/vitest-gpu/tree/main/packages/vitest-environment-webgpu-node) provide the canvases to compare.
+- [`demo/test/screenshots`](https://github.com/bhouston/vitest-gpu/tree/main/demo/test/screenshots) and the [repository README](https://github.com/bhouston/vitest-gpu#readme).
 
 ## Author
 
