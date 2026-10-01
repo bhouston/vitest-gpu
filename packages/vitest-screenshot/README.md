@@ -6,22 +6,66 @@
 [![Coverage][coverage-badge]][coverage-url]
 [![Discord][discord-badge]][discord-url]
 
-`await expect(image).toMatchScreenshot(reference)`: compare an image against a baseline committed next to your
-tests, with the same options as Vitest browser mode's `toMatchScreenshot`. Pair it with a native GPU
-environment and tests run up to 2.4x faster than in a browser — see the
-[blog post](https://ben3d.ca/blog/native-gpu-testing-for-vitest-and-jest) for details.
-Backend-agnostic: feed it a canvas from
-[`vitest-environment-webgl-node`](../vitest-environment-webgl-node) or
-[`vitest-environment-webgpu-node`](../vitest-environment-webgpu-node), an `ImageData`, a WebGPU texture
-readback, or pixels from a real browser.
-
-## Install
+Image snapshot testing for WebGL and WebGPU in Vitest on Node, without a browser or Playwright.
+`await expect(image).toMatchScreenshot(reference)` compares a canvas, `ImageData` or raw pixels against a
+baseline committed next to your tests, with the same options as Vitest browser mode's `toMatchScreenshot`.
+Pair it with a native GPU environment and tests run up to 2.4x faster than in a browser, see the
+[blog post](https://ben3d.ca/blog/native-gpu-testing-for-vitest-and-jest).
 
 ```sh
-pnpm add -D vitest vitest-screenshot
+pnpm add -D vitest vitest-screenshot vitest-environment-webgl-node
 ```
 
-Requires Vitest 4 or 5. Vitest 3 is not supported.
+```ts
+// vitest.config.ts
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({ test: { environment: 'webgl-node' } });
+```
+
+```ts
+// clear.test.ts
+import { expect, it } from 'vitest';
+import { extendMatchers } from 'vitest-screenshot';
+
+extendMatchers();
+
+it('clears to red', async () => {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 16;
+  const gl = canvas.getContext('webgl2')!;
+  gl.clearColor(1, 0, 0, 1);
+  gl.clear(gl.COLOR_BUFFER_BIT);
+  await expect(canvas).toMatchScreenshot('red.png');
+});
+```
+
+The first local run writes `__screenshots__/red.png`; commit it, and CI fails if it is missing or differs.
+Backend-agnostic: feed it a canvas from
+[`vitest-environment-webgl-node`](../vitest-environment-webgl-node) or
+[`vitest-environment-webgpu-node`](../vitest-environment-webgpu-node) (`createCanvas()` there), an `ImageData`,
+a WebGPU texture readback, or pixels from a real browser. With WebGPU, use `environment: 'webgpu-node'` and
+`createCanvas()`; the same assertion works.
+
+## Compared to alternatives
+
+| Approach                                | Notes                                                                                                                    |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Vitest browser mode `toMatchScreenshot` | Screenshots a real browser page. This package offers the same matcher options for pixels you already have in Node.       |
+| `toMatchSnapshot` on a pixel buffer     | Exact text comparison of data: no image baseline files, no tolerance, no diff image.                                     |
+| `vitest-screenshot`                     | Image baselines (png, jpg, gif, webp, ...), pixelmatch and ImageMagick-style metric comparators, diff images on failure. |
+
+## Supported versions
+
+Vitest 4 and 5 (CI tests both; Vitest 3 is not supported) and Node 22 or later. Image decoding uses
+[sharp](https://sharp.pixelplumbing.com), which ships prebuilt binaries for common platforms. Baselines
+rendered on different GPUs or drivers can differ slightly: use `allowedMismatchedPixelRatio` or the `metrics`
+comparator for baselines shared across machines.
+
+## Useful for
+
+Visual regression tests of anything rendered to a canvas or pixel buffer: three.js, Babylon.js, regl, PixiJS and
+raw WebGL or WebGPU scenes. These are compatible use cases, not endorsements.
 
 ## Usage
 
@@ -161,6 +205,12 @@ await expect(image).toMatchScreenshot('baseline.png', {
 ```
 
 See [`demo/test/screenshots`](../../demo/test/screenshots) for every source, format and comparator combination.
+
+## See also
+
+- [`vitest-environment-webgl-node`](../vitest-environment-webgl-node) and
+  [`vitest-environment-webgpu-node`](../vitest-environment-webgpu-node) provide the canvases to compare.
+- [`demo/test/screenshots`](../../demo/test/screenshots) and the [repository README](../../README.md).
 
 ## Author
 

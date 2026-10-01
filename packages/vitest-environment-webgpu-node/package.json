@@ -1,14 +1,22 @@
 {
   "name": "vitest-environment-webgpu-node",
   "version": "2.0.1",
-  "description": "Vitest environment that provides real headless WebGPU (Dawn via the webgpu package) in Node",
+  "description": "Vitest environment for real headless WebGPU tests in Node (Dawn via the webgpu package): no browser, Playwright or mocks",
   "keywords": [
+    "ci",
+    "compute-shader",
     "dawn",
+    "gpu",
+    "gpu-testing",
     "headless",
+    "node",
     "testing",
+    "three.js",
     "vitest",
     "vitest-environment",
-    "webgpu"
+    "webgpu",
+    "webgpu-testing",
+    "wgsl"
   ],
   "homepage": "https://github.com/bhouston/vitest-gpu#readme",
   "bugs": {

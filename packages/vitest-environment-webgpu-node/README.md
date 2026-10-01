@@ -6,11 +6,34 @@
 [![Coverage][coverage-badge]][coverage-url]
 [![Discord][discord-badge]][discord-url]
 
-Real, headless WebGPU inside Vitest, with no browser. Native GPU testing is up to 2.4x faster
-than running the same tests in a browser — see the
-[blog post](https://ben3d.ca/blog/native-gpu-testing-for-vitest-and-jest) for details.
-Powered by Google's Dawn through the
-[`webgpu`](https://github.com/dawn-gpu/node-webgpu) npm package.
+Run real WebGPU tests in Vitest on Node, without a browser, Playwright or mocks. Headless GPU testing
+for CI: `navigator.gpu` is backed by Google's Dawn through the
+[`webgpu`](https://github.com/dawn-gpu/node-webgpu) npm package. Native GPU testing is up to 2.4x faster
+than running the same tests in a browser, see the
+[blog post](https://ben3d.ca/blog/native-gpu-testing-for-vitest-and-jest).
+
+```sh
+pnpm add -D vitest vitest-environment-webgpu-node
+```
+
+```ts
+// vitest.config.ts
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({ test: { environment: 'webgpu-node' } });
+```
+
+```ts
+// gpu.test.ts
+import { expect, it } from 'vitest';
+
+it('has a real GPU device', async () => {
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter!.requestDevice();
+  const buffer = device.createBuffer({ size: 16, usage: GPUBufferUsage.COPY_DST });
+  expect(buffer.size).toBe(16);
+});
+```
 
 The environment puts `navigator.gpu` and every `GPU*` class and constant (`GPUBufferUsage`,
 `GPUShaderStage`, ...) on the global object before each test file and removes them afterwards.
@@ -19,13 +42,30 @@ Using Jest instead? See the equivalent
 [`jest-environment-webgpu-node`](https://github.com/bhouston/jest-gpu/tree/main/packages/jest-environment-webgpu-node)
 in [jest-gpu](https://github.com/bhouston/jest-gpu).
 
-## Install
+## Compared to alternatives
 
-```sh
-pnpm add -D vitest vitest-environment-webgpu-node
-```
+WebGPU has no mock equivalent of a canvas stub that runs shaders, so the realistic options are a browser or
+Dawn in Node.
 
-Requires Vitest 4 or 5 (Vitest 3 is not supported). Type checking needs TypeScript 6 or later (see [TypeScript types](#typescript-types)).
+| Approach                          | Real rendering | Notes                                                                                                         |
+| --------------------------------- | -------------- | ------------------------------------------------------------------------------------------------------------- |
+| Hand-written `navigator.gpu` mock | No             | You can assert calls, not shader output or readbacks.                                                         |
+| Vitest browser mode or Playwright | Yes            | A real browser with WebGPU enabled: heavier to install and slower to start; right when you need browser APIs. |
+| vitest-environment-webgpu-node    | Yes            | Dawn in the Node process (Metal, Vulkan, D3D12 and others via `dawnOptions`). Not a browser.                  |
+
+## Supported versions and platforms
+
+- Vitest 4 and 5 (CI tests both). Vitest 3 is not supported.
+- Node 22 or later. CI runs Node 22 and 26 on `macos-latest` and `ubuntu-latest`.
+- Type checking needs TypeScript 6 or later (see [TypeScript types](#typescript-types)).
+- Linux without a GPU needs Mesa's software Vulkan driver, see [Linux and CI](#linux-and-ci). This repo's CI does
+  not run on Windows.
+
+## Useful for
+
+three.js `WebGPURenderer`, Babylon Lite, Vercel's vgpu and raw WebGPU compute or render code. The demos exercise
+those three; other WebGPU libraries such as TypeGPU or luma.gl use the same API but are not covered by this
+repo's tests. These are compatible use cases, not endorsements.
 
 ## Usage
 
@@ -106,6 +146,18 @@ await expect(canvas).toMatchScreenshot('scene.png');
 `readPixels()` rejects them with an unsupported-format error. `asElement()` returns the same object and
 defaults to `HTMLCanvasElement` when DOM types are available. You can also request a library-specific type
 explicitly with `canvas.asElement<HTMLCanvasElement>()`.
+
+## Image snapshots
+
+`await expect(canvas).toMatchScreenshot('scene.png')` comes from [`vitest-screenshot`](../vitest-screenshot).
+Call `extendMatchers()` from it once, then pass the canvas as in the example above.
+
+## See also
+
+- [`vitest-environment-webgl-node`](../vitest-environment-webgl-node) for headless WebGL.
+- [`vitest-screenshot`](../vitest-screenshot) for `toMatchScreenshot()`.
+- [`demo/`](../../demo/test/webgpu) for device, upload, readback, triangle, three.js, Babylon Lite and vgpu tests,
+  and the [repository README](../../README.md).
 
 ## Author
 
