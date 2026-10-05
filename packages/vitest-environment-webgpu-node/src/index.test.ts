@@ -1,4 +1,5 @@
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
+import { globals } from 'webgpu';
 import environment, { HeadlessCanvas } from './index.ts';
 
 /** Shape the environment's `setup()` shims onto the plain object passed as `global` in these tests. */
@@ -115,4 +116,116 @@ it('removes shims when setup fails after partially installing them', async () =>
   expect(() => environment.setup(raw, {})).toThrow(TypeError);
   expect(raw).toEqual({ navigator });
   expect(global.navigator.gpu).toBe('locked');
+});
+
+it('destroys devices and detaches mapped buffers on teardown', async () => {
+  const raw: Record<string, unknown> = {};
+  const { teardown } = environment.setup(raw, {});
+  const global = raw as ShimmedGlobal;
+  const adapter = await global.navigator.gpu.requestAdapter();
+  const device = await adapter!.requestDevice();
+  const buffer = device.createBuffer({ size: 16, usage: global.GPUBufferUsage.MAP_READ, mappedAtCreation: true });
+  const range = buffer.getMappedRange();
+  try {
+    await teardown(raw);
+    expect(buffer.mapState).toBe('unmapped');
+    expect(range.byteLength).toBe(0);
+    expect((await device.lost).reason).toBe('destroyed');
+  } finally {
+    device.destroy();
+    await teardown(raw);
+  }
+});
+
+it('destroys devices whose request finishes after teardown', async () => {
+  const raw: Record<string, unknown> = {};
+  const { teardown } = environment.setup(raw, {});
+  const global = raw as ShimmedGlobal;
+  const adapter = await global.navigator.gpu.requestAdapter();
+  const pending = adapter!.requestDevice();
+  // Attach the rejection handler before teardown can settle the request.
+  const rejected = expect(pending).rejects.toThrow(/torn down/);
+  await teardown(raw);
+  await rejected;
+  await expect(adapter!.requestDevice()).rejects.toThrow(/torn down/);
+});
+
+it('cancels window and global animation frames, including stale functions', async () => {
+  vi.useFakeTimers();
+  const raw: Record<string, unknown> = {};
+  const { teardown } = environment.setup(raw, {});
+  const global = raw as ShimmedGlobal;
+  const frame = global.requestAnimationFrame;
+  const callback = vi.fn();
+  try {
+    frame(callback);
+    global.window.requestAnimationFrame(callback);
+    await teardown(raw);
+    vi.advanceTimersByTime(100);
+    expect(callback).not.toHaveBeenCalled();
+    frame(callback);
+    vi.advanceTimersByTime(100);
+    expect(callback).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  } finally {
+    await teardown(raw);
+    vi.useRealTimers();
+  }
+});
+
+it('returns null when no adapter is available and prevents use of a saved GPU after teardown', async () => {
+  const request = vi.spyOn(globals.GPU.prototype, 'requestAdapter').mockResolvedValue(null);
+  const raw: Record<string, unknown> = {};
+  const { teardown } = environment.setup(raw, {});
+  const gpu = (raw as ShimmedGlobal).navigator.gpu;
+  try {
+    expect(await gpu.requestAdapter()).toBeNull();
+    await teardown(raw);
+    await expect(gpu.requestAdapter()).rejects.toThrow(/torn down/);
+  } finally {
+    await teardown(raw);
+    request.mockRestore();
+  }
+});
+
+it('destroys a device returned by a delayed request rather than only rejecting the caller', async () => {
+  let resolveDevice!: (device: GPUDevice) => void;
+  const destroy = vi.fn();
+  const device = { destroy } as unknown as GPUDevice;
+  const adapter = {
+    requestDevice: () =>
+      new Promise<GPUDevice>((resolve) => {
+        resolveDevice = resolve;
+      }),
+  } as GPUAdapter;
+  const request = vi.spyOn(globals.GPU.prototype, 'requestAdapter').mockResolvedValue(adapter);
+  const raw: Record<string, unknown> = {};
+  const { teardown } = environment.setup(raw, {});
+  try {
+    const wrapped = await (raw as ShimmedGlobal).navigator.gpu.requestAdapter();
+    const pending = wrapped!.requestDevice();
+    const rejected = expect(pending).rejects.toThrow(/torn down/);
+    await teardown(raw);
+    resolveDevice(device);
+    await rejected;
+    expect(destroy).toHaveBeenCalledOnce();
+  } finally {
+    await teardown(raw);
+    request.mockRestore();
+  }
+});
+
+it('keeps devices from a parent environment alive until the parent tears down', async () => {
+  const raw: Record<string, unknown> = {};
+  const first = environment.setup(raw, {});
+  const parent = await (await (raw as ShimmedGlobal).navigator.gpu.requestAdapter())!.requestDevice();
+  const destroy = vi.spyOn(parent, 'destroy');
+  const second = environment.setup(raw, {});
+  const child = await (await (raw as ShimmedGlobal).navigator.gpu.requestAdapter())!.requestDevice();
+  await second.teardown(raw);
+  await second.teardown(raw);
+  expect((await child.lost).reason).toBe('destroyed');
+  expect(destroy).not.toHaveBeenCalled();
+  await first.teardown(raw);
+  expect(destroy).toHaveBeenCalledOnce();
 });

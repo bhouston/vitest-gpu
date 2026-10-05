@@ -1,7 +1,7 @@
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { getDisplayInfo } from '@onirenaud/node-webgl';
+import { Canvas, createCanvas, getDisplayInfo } from '@onirenaud/node-webgl';
 import { expect, it, vi } from 'vitest';
 import environment from './index.ts';
 
@@ -121,5 +121,119 @@ it('warns when backend or api options cannot be applied to an already-initialise
     );
   } finally {
     warn.mockRestore();
+  }
+});
+
+it('destroys contexts from DOM, offscreen, constructor and imported canvases on teardown', async () => {
+  const original = Canvas.prototype.getContext;
+  const { teardown } = environment.setup(globalThis, {});
+  const getContext = Canvas.prototype.getContext;
+  const canvases = [document.createElement('canvas'), new OffscreenCanvas(4, 4), new Canvas(4, 4), createCanvas(4, 4)];
+  const contexts = canvases.map((canvas) => canvas.getContext('webgl2')!);
+  try {
+    expect(contexts.every(Boolean)).toBe(true);
+    await teardown(globalThis);
+    expect(contexts.map((context) => (context as unknown as { _destroyed: boolean })._destroyed)).toEqual([
+      true,
+      true,
+      true,
+      true,
+    ]);
+    expect(Canvas.prototype.getContext).toBe(original);
+    expect(() => getContext.call(canvases[0]! as Canvas, 'webgl2')).toThrow(/torn down/);
+  } finally {
+    canvases.forEach((canvas) => (canvas as unknown as Canvas).dispose());
+    await teardown(globalThis);
+  }
+});
+
+it('cancels pending animation frames and prevents stale frame loops after teardown', async () => {
+  vi.useFakeTimers();
+  const { teardown } = environment.setup(globalThis, {});
+  const frame = globalThis.requestAnimationFrame;
+  const callback = vi.fn();
+  try {
+    frame(callback);
+    await teardown(globalThis);
+    vi.advanceTimersByTime(100);
+    expect(callback).not.toHaveBeenCalled();
+    frame(callback);
+    vi.advanceTimersByTime(100);
+    expect(callback).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  } finally {
+    await teardown(globalThis);
+    vi.useRealTimers();
+  }
+});
+
+it('preserves existing contexts and host animation frame functions', async () => {
+  const canvas = createCanvas(4, 4);
+  const context = canvas.getContext('webgl2')!;
+  const frame = vi.fn();
+  const cancel = vi.fn();
+  Object.defineProperty(globalThis, 'requestAnimationFrame', { value: frame, writable: true, configurable: true });
+  Object.defineProperty(globalThis, 'cancelAnimationFrame', { value: cancel, writable: true, configurable: true });
+  try {
+    const { teardown } = environment.setup(globalThis, {});
+    expect(canvas.getContext('webgl2')).toBe(context);
+    expect(globalThis.requestAnimationFrame).toBe(frame);
+    await teardown(globalThis);
+    expect(context._destroyed).toBe(false);
+    expect(globalThis.cancelAnimationFrame).toBe(cancel);
+  } finally {
+    canvas.dispose();
+    delete (globalThis as { requestAnimationFrame?: unknown }).requestAnimationFrame;
+    delete (globalThis as { cancelAnimationFrame?: unknown }).cancelAnimationFrame;
+  }
+});
+
+it('runs and cancels frames using the configured interval', async () => {
+  vi.useFakeTimers();
+  const { teardown } = environment.setup(globalThis, { webglNode: { frameInterval: 5 } });
+  try {
+    const canceled = vi.fn();
+    cancelAnimationFrame(requestAnimationFrame(canceled));
+    const callback = vi.fn();
+    requestAnimationFrame(callback);
+    vi.advanceTimersByTime(4);
+    expect(callback).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(callback).toHaveBeenCalledOnce();
+    expect(canceled).not.toHaveBeenCalled();
+    expect(vi.getTimerCount()).toBe(0);
+  } finally {
+    await teardown(globalThis);
+    vi.useRealTimers();
+  }
+});
+
+it('restores the parent canvas wrapper after nested teardown and makes teardown idempotent', async () => {
+  const first = environment.setup(globalThis, {});
+  const canvas = createCanvas(4, 4);
+  const parent = canvas.getContext('webgl2')!;
+  const second = environment.setup(globalThis, {});
+  const child = createCanvas(4, 4).getContext('webgl2')!;
+  await second.teardown(globalThis);
+  await second.teardown(globalThis);
+  expect(child._destroyed).toBe(true);
+  expect(parent._destroyed).toBe(false);
+  const later = createCanvas(4, 4).getContext('webgl2')!;
+  await first.teardown(globalThis);
+  expect(parent._destroyed).toBe(true);
+  expect(later._destroyed).toBe(true);
+});
+
+it('restores the canvas prototype when DOM installation fails', () => {
+  const original = Canvas.prototype.getContext;
+  const window = Object.freeze({ addEventListener: undefined });
+  Object.defineProperty(globalThis, 'window', { value: window, configurable: true });
+  try {
+    expect(() => environment.setup(globalThis, {})).toThrow(TypeError);
+    expect(Canvas.prototype.getContext).toBe(original);
+    expect(globalThis.window).toBe(window);
+    expect(globalThis.document).toBeUndefined();
+  } finally {
+    delete (globalThis as { window?: unknown }).window;
   }
 });

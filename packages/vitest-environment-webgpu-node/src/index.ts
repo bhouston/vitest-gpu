@@ -10,19 +10,36 @@ export type WebgpuNodeOptions = {
   dawnOptions?: string[];
 };
 
-/** Just enough DOM for libraries that make their own canvas and drive a frame loop. Only installed when missing. */
-const requestAnimationFrame = (callback: (time: number) => void): NodeJS.Timeout =>
-  setTimeout(() => callback(performance.now()), 16).unref();
-
-const domShims = (): Record<string, unknown> => {
+/** Each environment owns its frame callbacks; unref alone does not release them. */
+const domShims = () => {
+  const frames = new Set<NodeJS.Timeout>();
+  let disposed = false;
+  const requestAnimationFrame = (callback: (time: number) => void): NodeJS.Timeout | number => {
+    if (disposed) return 0;
+    const frame = setTimeout(() => {
+      frames.delete(frame);
+      callback(performance.now());
+    }, 16).unref();
+    frames.add(frame);
+    return frame;
+  };
+  const cancelAnimationFrame = (frame: NodeJS.Timeout) => {
+    frames.delete(frame);
+    clearTimeout(frame);
+  };
+  const dispose = () => {
+    disposed = true;
+    for (const frame of frames) clearTimeout(frame);
+    frames.clear();
+  };
   const window = {
     devicePixelRatio: 1,
     requestAnimationFrame,
-    cancelAnimationFrame: clearTimeout,
+    cancelAnimationFrame,
     addEventListener() {},
     removeEventListener() {},
   };
-  return {
+  const shims = {
     HTMLCanvasElement: HeadlessCanvas,
     document: {
       createElement: (tag: string) => (tag === 'canvas' ? new HeadlessCanvas() : {}),
@@ -33,8 +50,9 @@ const domShims = (): Record<string, unknown> => {
     window,
     self: window,
     requestAnimationFrame,
-    cancelAnimationFrame: clearTimeout,
+    cancelAnimationFrame,
   };
+  return { shims, dispose };
 };
 
 type SavedProperty = { target: object; key: PropertyKey; descriptor?: PropertyDescriptor };
@@ -50,7 +68,16 @@ export default {
   name: 'webgpu-node',
   viteEnvironment: 'ssr',
   setup(global: Record<string, unknown>, { webgpuNode = {} }: { webgpuNode?: WebgpuNodeOptions }) {
-    const shims = { ...globals, ...domShims() } as Record<string, unknown>;
+    const dom = domShims();
+    const shims = { ...globals, ...dom.shims } as Record<string, unknown>;
+    const devices = new Set<GPUDevice>();
+    let disposed = false;
+    const dispose = () => {
+      disposed = true;
+      dom.dispose();
+      for (const device of devices) device.destroy();
+      devices.clear();
+    };
     const modified: SavedProperty[] = [];
     try {
       for (const key of Object.keys(shims)) {
@@ -68,19 +95,46 @@ export default {
       }
       const navigator = global.navigator as object;
       modified.push({ target: navigator, key: 'gpu', descriptor: Object.getOwnPropertyDescriptor(navigator, 'gpu') });
+      const gpu = create(webgpuNode.dawnOptions ?? []);
+      const requestAdapter = gpu.requestAdapter.bind(gpu);
+      gpu.requestAdapter = async (options) => {
+        if (disposed) throw new Error('WebGPU environment has been torn down');
+        const adapter = await requestAdapter(options);
+        if (adapter) {
+          const requestDevice = adapter.requestDevice.bind(adapter);
+          adapter.requestDevice = async (descriptor) => {
+            if (disposed) throw new Error('WebGPU environment has been torn down');
+            const device = await requestDevice(descriptor);
+            if (disposed) {
+              device.destroy();
+              throw new Error('WebGPU environment has been torn down');
+            }
+            devices.add(device);
+            return device;
+          };
+        }
+        return adapter;
+      };
       Object.defineProperty(navigator, 'gpu', {
-        value: create(webgpuNode.dawnOptions ?? []),
+        value: gpu,
         writable: false,
         enumerable: false,
         configurable: true,
       });
     } catch (error) {
+      dispose();
       restore(modified);
       throw error;
     }
     return {
       teardown(_global?: Record<string, unknown>) {
-        restore(modified);
+        if (disposed) return;
+        try {
+          dispose();
+        } finally {
+          restore(modified);
+          modified.length = 0;
+        }
       },
     };
   },

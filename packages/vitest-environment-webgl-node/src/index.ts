@@ -1,4 +1,11 @@
-import { getDisplayInfo, init, installDOM, type InitOptions, type InstallDOMOptions } from '@onirenaud/node-webgl';
+import {
+  Canvas,
+  getDisplayInfo,
+  init,
+  installDOM,
+  type InitOptions,
+  type InstallDOMOptions,
+} from '@onirenaud/node-webgl';
 import { readFile } from 'node:fs/promises';
 import { extname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -103,11 +110,59 @@ export default {
       }
       init({ backend, api });
     }
+    const contexts = new Set<NonNullable<ReturnType<Canvas['getContext']>>>();
+    const frames = new Set<ReturnType<typeof setTimeout>>();
+    let disposed = false;
+    const dispose = () => {
+      disposed = true;
+      for (const frame of frames) clearTimeout(frame);
+      frames.clear();
+      for (const context of contexts) context.destroy();
+      contexts.clear();
+    };
+    const hasFrame = (global as unknown as Record<string, unknown>).requestAnimationFrame !== undefined;
     const before = snapshot(global);
     const nested: { target: object; before: PropertySnapshot; changed?: Set<PropertyKey> }[] = [];
     try {
       // node-webgl remembers fetch installation at module scope, which cannot represent separate Vitest environments.
       installDOM({ ...dom, fetch: false });
+      // Intercept the shared canvas API so imported factories and OffscreenCanvas are covered too.
+      const canvasBefore = snapshot(Canvas.prototype);
+      nested.push({ target: Canvas.prototype, before: canvasBefore });
+      const getContext = Canvas.prototype.getContext;
+      Canvas.prototype.getContext = function (this: Canvas, ...args: Parameters<Canvas['getContext']>) {
+        if (disposed) throw new Error('WebGL environment has been torn down');
+        // node-webgl exposes the cached context at runtime but strips it from its declarations.
+        const previous = (this as Canvas & { _ctx?: ReturnType<Canvas['getContext']> })._ctx;
+        const context = getContext.apply(this, args);
+        if (context && context !== previous) contexts.add(context);
+        return context;
+      } as Canvas['getContext'];
+      nested.at(-1)!.changed = changedProperties(canvasBefore, Canvas.prototype);
+      // Own only the rAF shim installed by this setup; preserve host implementations.
+      if (!hasFrame) {
+        Object.defineProperty(global, 'requestAnimationFrame', {
+          configurable: true,
+          writable: true,
+          value: (callback: (time: number) => void) => {
+            if (disposed) return 0;
+            const frame = setTimeout(() => {
+              frames.delete(frame);
+              callback(performance.now());
+            }, dom.frameInterval ?? 16).unref();
+            frames.add(frame);
+            return frame;
+          },
+        });
+        Object.defineProperty(global, 'cancelAnimationFrame', {
+          configurable: true,
+          writable: true,
+          value: (frame: ReturnType<typeof setTimeout>) => {
+            frames.delete(frame);
+            clearTimeout(frame);
+          },
+        });
+      }
       if (dom.fetch !== false) installFetch(global, dom.baseDir ?? process.cwd());
       // node-webgl's window/document have no event methods; engines like Babylon.js register resize/blur listeners.
       const { window, document } = global as unknown as Record<string, Record<string, unknown>>;
@@ -120,6 +175,7 @@ export default {
         nested.at(-1)!.changed = changedProperties(targetBefore, target);
       }
     } catch (error) {
+      dispose();
       for (const item of nested.toReversed())
         restore(item.target, item.before, item.changed ?? changedProperties(item.before, item.target));
       restore(global, before, changedProperties(before, global));
@@ -128,8 +184,15 @@ export default {
     const changed = changedProperties(before, global);
     return {
       teardown(g: Record<string, unknown>) {
-        for (const item of nested.toReversed()) restore(item.target, item.before, item.changed!);
-        restore(g, before, changed);
+        if (disposed) return;
+        try {
+          dispose();
+        } finally {
+          for (const item of nested.toReversed()) restore(item.target, item.before, item.changed!);
+          restore(g, before, changed);
+          nested.length = 0;
+          before.clear();
+        }
       },
     };
   },
