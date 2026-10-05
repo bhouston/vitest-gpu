@@ -163,3 +163,7 @@ MIT
 [discord-url]: https://discord.gg/fwupDN493R
 [coverage-badge]: https://codecov.io/gh/bhouston/vitest-gpu/branch/main/graph/badge.svg
 [coverage-url]: https://codecov.io/gh/bhouston/vitest-gpu
+
+## Resource cleanup
+
+Environment teardown destroys contexts first created through `Canvas.getContext()` during the test file, including DOM canvases, `OffscreenCanvas` and imported canvas factories. It also cancels pending callbacks scheduled through its animation-frame shim. Contexts created directly with the WebGL context constructors, or before setup, remain the caller's responsibility: call `destroy()` on them. Dispose renderers and canvases during a long-running file to release resources sooner.

@@ -176,3 +176,7 @@ MIT
 [discord-url]: https://discord.gg/fwupDN493R
 [coverage-badge]: https://codecov.io/gh/bhouston/vitest-gpu/branch/main/graph/badge.svg
 [coverage-url]: https://codecov.io/gh/bhouston/vitest-gpu
+
+## Resource cleanup
+
+Environment teardown destroys devices requested through its `navigator.gpu` and cancels pending callbacks scheduled through its animation-frame shim. Device requests that finish after teardown are destroyed and rejected. Devices created through another GPU instance remain the caller's responsibility. Keep disposing renderers, buffers, textures and devices during long-running files to release resources sooner.
