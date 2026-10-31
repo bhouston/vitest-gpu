@@ -3,7 +3,7 @@ import { extendMatchers } from 'vitest-screenshot';
 extendMatchers();
 
 /** A deterministic 64x64 test image: four flat colour quadrants (few colours, so gif's 256-colour palette is exact). */
-export const quadrants = () => {
+export const quadrants = (): InstanceType<typeof ImageData> => {
   const size = 64;
   const image = new ImageData(size, size);
   const colours = [
@@ -19,7 +19,7 @@ export const quadrants = () => {
 };
 
 /** The same picture drawn with WebGL via scissored clears, so a real node-webgl Canvas can be the source. */
-export const quadrantsCanvas = () => {
+export const quadrantsCanvas = (): InstanceType<typeof HTMLCanvasElement> => {
   const canvas = document.createElement('canvas');
   canvas.width = canvas.height = 64;
   const gl = canvas.getContext('webgl', { preserveDrawingBuffer: true })!;
@@ -36,7 +36,7 @@ export const quadrantsCanvas = () => {
   return canvas;
 };
 
-export const loadImage = async (path: string) => {
+export const loadImage = async (path: string): Promise<InstanceType<typeof Image>> => {
   const image = new Image();
   image.src = path;
   await image.decode();
