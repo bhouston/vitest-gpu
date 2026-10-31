@@ -69,6 +69,7 @@ export default {
   viteEnvironment: 'ssr',
   setup(global: Record<string, unknown>, { webgpuNode = {} }: { webgpuNode?: WebgpuNodeOptions }) {
     const dom = domShims();
+    // oxlint-disable-next-line typescript/no-misused-spread -- intentionally copies the own enumerable GPU* globals
     const shims = { ...globals, ...dom.shims } as Record<string, unknown>;
     const devices = new Set<GPUDevice>();
     let disposed = false;
@@ -127,7 +128,7 @@ export default {
       throw error;
     }
     return {
-      teardown(_global?: Record<string, unknown>) {
+      teardown: (_global?: Record<string, unknown>) => {
         if (disposed) return;
         try {
           dispose();

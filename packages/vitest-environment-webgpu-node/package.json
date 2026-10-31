@@ -50,8 +50,8 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc",
-    "tsc": "tsc"
+    "build": "tsc -p tsconfig.build.json",
+    "tsc": "tsc --noEmit"
   },
   "dependencies": {
     "webgpu": "^0.6.2"

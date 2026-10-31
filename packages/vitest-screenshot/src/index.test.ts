@@ -110,7 +110,7 @@ it('creates a missing baseline in a real local Vitest run', () => {
   const file = join(dir, 'local.png');
   const vitest = join(fileURLToPath(import.meta.resolve('vitest')), '..', '..', 'vitest.mjs');
   const config = join(import.meta.dirname, '..', 'test-fixtures', 'vitest.config.ts');
-  const env = { ...process.env, SCREENSHOT_BASELINE: file };
+  const env: NodeJS.ProcessEnv = { ...process.env, SCREENSHOT_BASELINE: file };
   delete env.CI;
   delete env.GITHUB_ACTIONS;
   execFileSync(process.execPath, [vitest, 'run', '--config', config], {
@@ -333,7 +333,7 @@ describe('configuration', () => {
     };
     extendMatchers({ comparators: { 'top-left': topLeft, silent } });
     try {
-      const opts = { baselineDir: dir, comparatorName: 'top-left' };
+      const opts = { baselineDir: dir, comparatorName: 'top-left' } as const;
       await expect(solid(1, 1, [250, 0, 0, 255])).toMatchScreenshot(solid(1, 1, [255, 0, 0, 255]), {
         ...opts,
         comparatorOptions: { tolerance: 5 },
@@ -345,13 +345,16 @@ describe('configuration', () => {
       expect(readdirSync(dir)).toEqual([
         'configuration_runs_custom_comparators_with_Vitest_s_signature_and_rejects_unknown_names.actual.png',
       ]);
-      await expect(red).toMatchScreenshot(red, { baselineDir: dir, comparatorName: 'silent' });
+      await expect(red).toMatchScreenshot(red, { baselineDir: dir, comparatorName: 'silent' as const });
       await expect(
-        expect(red).toMatchScreenshot(solid(2, 2, [0, 0, 0, 255]), { baselineDir: dir, comparatorName: 'silent' }),
+        expect(red).toMatchScreenshot(solid(2, 2, [0, 0, 0, 255]), {
+          baselineDir: dir,
+          comparatorName: 'silent' as const,
+        }),
       ).rejects.toThrow(/: differs$/);
-      await expect(expect(red).toMatchScreenshot(red, { baselineDir: dir, comparatorName: 'nope' })).rejects.toThrow(
-        /unknown comparator "nope"; known: pixelmatch, metrics, top-left, silent/,
-      );
+      await expect(
+        expect(red).toMatchScreenshot(red, { baselineDir: dir, comparatorName: 'nope' as never }),
+      ).rejects.toThrow(/unknown comparator "nope"; known: pixelmatch, metrics, top-left, silent/);
     } finally {
       extendMatchers();
     }

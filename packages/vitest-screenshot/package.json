@@ -51,8 +51,8 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc",
-    "tsc": "tsc && tsc -p tsconfig.type-tests.json"
+    "build": "tsc -p tsconfig.build.json",
+    "tsc": "tsc --noEmit && tsc -p tsconfig.type-tests.json"
   },
   "dependencies": {
     "pixelmatch": "^7.2.0",

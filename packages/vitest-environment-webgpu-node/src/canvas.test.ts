@@ -2,15 +2,15 @@ import { afterAll, beforeAll, expect, it, vi } from 'vitest';
 import { createCanvas } from './canvas.ts';
 import environment from './index.ts';
 
-let teardown: (g: unknown) => unknown;
+let teardown: (g?: Record<string, unknown>) => void;
 let device: GPUDevice;
 beforeAll(async () => {
-  ({ teardown } = await environment.setup(globalThis, {}));
+  ({ teardown } = environment.setup(globalThis, {}));
   device = await (await navigator.gpu.requestAdapter())!.requestDevice();
 });
 afterAll(async () => {
   device.destroy();
-  await teardown(globalThis);
+  teardown(globalThis);
 });
 
 const clearTo = (canvas: ReturnType<typeof createCanvas>, color: GPUColor) => {

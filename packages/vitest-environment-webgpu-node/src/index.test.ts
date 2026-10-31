@@ -32,7 +32,7 @@ it('declares the SSR loader metadata required by Vitest 3 and 4', () => {
 
 it('adds navigator.gpu backed by Dawn, the GPU* globals and a canvas shim, and removes them on teardown', async () => {
   const raw: Record<string, unknown> = { GPU: 'kept' };
-  const { teardown } = await environment.setup(raw, { webgpuNode: { dawnOptions: [] } });
+  const { teardown } = environment.setup(raw, { webgpuNode: { dawnOptions: [] } });
   const global = raw as ShimmedGlobal;
   expect(global.GPU).toBe('kept');
   expect(global.GPUBufferUsage.MAP_READ).toBe(1);
@@ -61,18 +61,18 @@ it('adds navigator.gpu backed by Dawn, the GPU* globals and a canvas shim, and r
   expect(Array.from(new Uint32Array(buffer.getMappedRange()))).toEqual([1, 2, 3, 4]);
   buffer.unmap();
   device.destroy();
-  await teardown(raw);
+  teardown(raw);
   expect(raw).toEqual({ GPU: 'kept' });
 });
 
 it('reuses an existing navigator object and defaults options', async () => {
   const navigator = { userAgent: 'x' };
   const raw: Record<string, unknown> = { navigator };
-  const { teardown } = await environment.setup(raw, {});
+  const { teardown } = environment.setup(raw, {});
   const global = raw as ShimmedGlobal;
   expect(global.navigator).toBe(navigator);
   expect(typeof global.navigator.gpu.requestAdapter).toBe('function');
-  await teardown(raw);
+  teardown(raw);
   expect(navigator).toEqual({ userAgent: 'x' });
 });
 
@@ -87,10 +87,10 @@ it('restores the exact navigator.gpu descriptor', async () => {
   };
   Object.defineProperty(navigator, 'gpu', descriptor);
   const raw: Record<string, unknown> = { navigator };
-  const { teardown } = await environment.setup(raw, {});
+  const { teardown } = environment.setup(raw, {});
   const global = raw as ShimmedGlobal;
   expect(global.navigator.gpu).not.toBe(originalGpu);
-  await teardown(raw);
+  teardown(raw);
   expect(Object.getOwnPropertyDescriptor(navigator, 'gpu')).toEqual(descriptor);
 });
 
@@ -98,13 +98,13 @@ it('unwinds nested setups in teardown order', async () => {
   const navigator = {};
   const raw: Record<string, unknown> = { navigator };
   const global = raw as ShimmedGlobal;
-  const first = await environment.setup(raw, {});
+  const first = environment.setup(raw, {});
   const firstGpu = global.navigator.gpu;
-  const second = await environment.setup(raw, {});
+  const second = environment.setup(raw, {});
   expect(global.navigator.gpu).not.toBe(firstGpu);
-  await second.teardown(raw);
+  second.teardown(raw);
   expect(global.navigator.gpu).toBe(firstGpu);
-  await first.teardown(raw);
+  first.teardown(raw);
   expect(navigator).toEqual({});
 });
 
@@ -127,13 +127,13 @@ it('destroys devices and detaches mapped buffers on teardown', async () => {
   const buffer = device.createBuffer({ size: 16, usage: global.GPUBufferUsage.MAP_READ, mappedAtCreation: true });
   const range = buffer.getMappedRange();
   try {
-    await teardown(raw);
+    teardown(raw);
     expect(buffer.mapState).toBe('unmapped');
     expect(range.byteLength).toBe(0);
     expect((await device.lost).reason).toBe('destroyed');
   } finally {
     device.destroy();
-    await teardown(raw);
+    teardown(raw);
   }
 });
 
@@ -145,7 +145,7 @@ it('destroys devices whose request finishes after teardown', async () => {
   const pending = adapter!.requestDevice();
   // Attach the rejection handler before teardown can settle the request.
   const rejected = expect(pending).rejects.toThrow(/torn down/);
-  await teardown(raw);
+  teardown(raw);
   await rejected;
   await expect(adapter!.requestDevice()).rejects.toThrow(/torn down/);
 });
@@ -160,7 +160,7 @@ it('cancels window and global animation frames, including stale functions', asyn
   try {
     frame(callback);
     global.window.requestAnimationFrame(callback);
-    await teardown(raw);
+    teardown(raw);
     vi.advanceTimersByTime(100);
     expect(callback).not.toHaveBeenCalled();
     frame(callback);
@@ -168,22 +168,24 @@ it('cancels window and global animation frames, including stale functions', asyn
     expect(callback).not.toHaveBeenCalled();
     expect(vi.getTimerCount()).toBe(0);
   } finally {
-    await teardown(raw);
+    teardown(raw);
     vi.useRealTimers();
   }
 });
 
 it('returns null when no adapter is available and prevents use of a saved GPU after teardown', async () => {
-  const request = vi.spyOn(globals.GPU.prototype, 'requestAdapter').mockResolvedValue(null);
+  const request = vi
+    .spyOn((globals as { GPU: { prototype: GPU } }).GPU.prototype, 'requestAdapter')
+    .mockResolvedValue(null);
   const raw: Record<string, unknown> = {};
   const { teardown } = environment.setup(raw, {});
   const gpu = (raw as ShimmedGlobal).navigator.gpu;
   try {
     expect(await gpu.requestAdapter()).toBeNull();
-    await teardown(raw);
+    teardown(raw);
     await expect(gpu.requestAdapter()).rejects.toThrow(/torn down/);
   } finally {
-    await teardown(raw);
+    teardown(raw);
     request.mockRestore();
   }
 });
@@ -198,19 +200,21 @@ it('destroys a device returned by a delayed request rather than only rejecting t
         resolveDevice = resolve;
       }),
   } as GPUAdapter;
-  const request = vi.spyOn(globals.GPU.prototype, 'requestAdapter').mockResolvedValue(adapter);
+  const request = vi
+    .spyOn((globals as { GPU: { prototype: GPU } }).GPU.prototype, 'requestAdapter')
+    .mockResolvedValue(adapter);
   const raw: Record<string, unknown> = {};
   const { teardown } = environment.setup(raw, {});
   try {
     const wrapped = await (raw as ShimmedGlobal).navigator.gpu.requestAdapter();
     const pending = wrapped!.requestDevice();
     const rejected = expect(pending).rejects.toThrow(/torn down/);
-    await teardown(raw);
+    teardown(raw);
     resolveDevice(device);
     await rejected;
     expect(destroy).toHaveBeenCalledOnce();
   } finally {
-    await teardown(raw);
+    teardown(raw);
     request.mockRestore();
   }
 });
@@ -222,10 +226,10 @@ it('keeps devices from a parent environment alive until the parent tears down', 
   const destroy = vi.spyOn(parent, 'destroy');
   const second = environment.setup(raw, {});
   const child = await (await (raw as ShimmedGlobal).navigator.gpu.requestAdapter())!.requestDevice();
-  await second.teardown(raw);
-  await second.teardown(raw);
+  second.teardown(raw);
+  second.teardown(raw);
   expect((await child.lost).reason).toBe('destroyed');
   expect(destroy).not.toHaveBeenCalled();
-  await first.teardown(raw);
+  first.teardown(raw);
   expect(destroy).toHaveBeenCalledOnce();
 });
