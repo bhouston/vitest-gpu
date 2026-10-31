@@ -129,6 +129,7 @@ export default {
       // Intercept the shared canvas API so imported factories and OffscreenCanvas are covered too.
       const canvasBefore = snapshot(Canvas.prototype);
       nested.push({ target: Canvas.prototype, before: canvasBefore });
+      // oxlint-disable-next-line typescript/unbound-method -- Canvas.prototype.getContext is patched/compared by identity, never called unbound
       const getContext = Canvas.prototype.getContext;
       Canvas.prototype.getContext = function (this: Canvas, ...args: Parameters<Canvas['getContext']>) {
         if (disposed) throw new Error('WebGL environment has been torn down');
@@ -183,7 +184,7 @@ export default {
     }
     const changed = changedProperties(before, global);
     return {
-      teardown(g: Record<string, unknown>) {
+      teardown: (g: Record<string, unknown>) => {
         if (disposed) return;
         try {
           dispose();

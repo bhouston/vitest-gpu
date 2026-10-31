@@ -22,5 +22,5 @@ it('renders a three.js torus knot with WebGPURenderer', async () => {
   await expect(canvas).toMatchScreenshot('three-torus-knot.png', {
     comparatorOptions: { allowedMismatchedPixelRatio: 0.02 },
   });
-  renderer.dispose();
+  await renderer.dispose();
 });

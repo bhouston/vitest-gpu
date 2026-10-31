@@ -1,4 +1,10 @@
 {
   "extends": "../../tsconfig.node.json",
-  "exclude": ["src/**/*.test.ts", "dist", "node_modules"]
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "rootDir": "."
+  },
+  "include": ["src/**/*", "globals.d.ts", "type-test-node.ts"],
+  "exclude": ["dist", "node_modules"]
 }

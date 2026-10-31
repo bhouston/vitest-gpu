@@ -57,8 +57,8 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc",
-    "tsc": "tsc"
+    "build": "tsc -p tsconfig.build.json",
+    "tsc": "tsc --noEmit"
   },
   "dependencies": {
     "@onirenaud/node-webgl": "^0.2.0"

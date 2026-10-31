@@ -13,7 +13,7 @@ it('declares the SSR loader metadata required by Vitest 3 and 4', () => {
 
 it('installs the DOM shim with a real WebGL2 canvas and removes it on teardown', async () => {
   expect(globalThis.document).toBeUndefined();
-  const { teardown } = await environment.setup(globalThis, { webglNode: { innerWidth: 320, api: 'auto' } });
+  const { teardown } = environment.setup(globalThis, { webglNode: { innerWidth: 320, api: 'auto' } });
   expect(globalThis.window.innerWidth).toBe(320);
   window.addEventListener('resize', listener);
   document.addEventListener('visibilitychange', listener);
@@ -30,15 +30,15 @@ it('installs the DOM shim with a real WebGL2 canvas and removes it on teardown',
   const pixels = new Uint8Array(4);
   gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
   expect(Array.from(pixels)).toEqual([255, 0, 0, 255]);
-  await teardown(globalThis);
+  teardown(globalThis);
   expect(globalThis.document).toBeUndefined();
   expect(globalThis.window).toBeUndefined();
 });
 
 it('defaults options when none are given', async () => {
-  const { teardown } = await environment.setup(globalThis, {});
+  const { teardown } = environment.setup(globalThis, {});
   expect(globalThis.window.innerWidth).toBe(1920);
-  await teardown(globalThis);
+  teardown(globalThis);
 });
 
 it('restores overwritten descriptors and nested listener properties', async () => {
@@ -49,11 +49,11 @@ it('restores overwritten descriptors and nested listener properties', async () =
   Object.defineProperty(globalThis, 'window', { value: window, writable: true, configurable: true });
   Object.defineProperty(globalThis, 'document', { value: document, writable: true, configurable: true });
   try {
-    const { teardown } = await environment.setup(globalThis, {});
+    const { teardown } = environment.setup(globalThis, {});
     expect(globalThis.fetch).not.toBe(originalFetch);
     expect(window.addEventListener).toBeTypeOf('function');
     expect(document.removeEventListener).toBeTypeOf('function');
-    await teardown(globalThis);
+    teardown(globalThis);
     expect(Object.getOwnPropertyDescriptor(globalThis, 'fetch')).toEqual(fetchDescriptor);
     expect(Object.getOwnPropertyDescriptor(window, 'addEventListener')).toEqual({
       value: undefined,
@@ -81,19 +81,19 @@ it('honors fetch and baseDir options across repeated setups', async () => {
   await writeFile(join(secondDir, 'value.txt'), 'second');
   try {
     const originalFetch = globalThis.fetch;
-    const disabled = await environment.setup(globalThis, { webglNode: { fetch: false, baseDir: firstDir } });
+    const disabled = environment.setup(globalThis, { webglNode: { fetch: false, baseDir: firstDir } });
     expect(globalThis.fetch).toBe(originalFetch);
-    await disabled.teardown(globalThis);
+    disabled.teardown(globalThis);
 
-    const first = await environment.setup(globalThis, { webglNode: { baseDir: firstDir } });
+    const first = environment.setup(globalThis, { webglNode: { baseDir: firstDir } });
     expect(await (await fetch('value.txt')).text()).toBe('first');
     expect((await fetch('missing.txt')).status).toBe(404);
     expect(await (await fetch(new URL('data:text/plain,remote'))).text()).toBe('remote');
-    await first.teardown(globalThis);
+    first.teardown(globalThis);
 
-    const second = await environment.setup(globalThis, { webglNode: { baseDir: secondDir } });
+    const second = environment.setup(globalThis, { webglNode: { baseDir: secondDir } });
     expect(await (await fetch('value.txt')).text()).toBe('second');
-    await second.teardown(globalThis);
+    second.teardown(globalThis);
     expect(globalThis.fetch).toBe(originalFetch);
   } finally {
     await Promise.all([rm(firstDir, { recursive: true }), rm(secondDir, { recursive: true })]);
@@ -104,17 +104,17 @@ it('warns when backend or api options cannot be applied to an already-initialise
   const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
   try {
     const display = getDisplayInfo()!;
-    const same = await environment.setup(globalThis, {
+    const same = environment.setup(globalThis, {
       webglNode: { backend: display.backend as never, api: display.api },
     });
-    await same.teardown(globalThis);
-    const generic = await environment.setup(globalThis, { webglNode: { backend: 'default', api: 'auto' } });
-    await generic.teardown(globalThis);
+    same.teardown(globalThis);
+    const generic = environment.setup(globalThis, { webglNode: { backend: 'default', api: 'auto' } });
+    generic.teardown(globalThis);
     expect(warn).not.toHaveBeenCalled();
 
     const other = display.backend === 'null' ? 'swiftshader' : 'null';
-    const different = await environment.setup(globalThis, { webglNode: { backend: other } });
-    await different.teardown(globalThis);
+    const different = environment.setup(globalThis, { webglNode: { backend: other } });
+    different.teardown(globalThis);
     expect(warn).toHaveBeenCalledOnce();
     expect(warn.mock.calls[0]![0]).toMatch(
       new RegExp(`ignoring backend "${other}": the GL display was already initialised .*backend "${display.backend}"`),
@@ -125,25 +125,28 @@ it('warns when backend or api options cannot be applied to an already-initialise
 });
 
 it('destroys contexts from DOM, offscreen, constructor and imported canvases on teardown', async () => {
+  // oxlint-disable-next-line typescript/unbound-method -- Canvas.prototype.getContext is patched/compared by identity, never called unbound
   const original = Canvas.prototype.getContext;
   const { teardown } = environment.setup(globalThis, {});
+  // oxlint-disable-next-line typescript/unbound-method -- Canvas.prototype.getContext is patched/compared by identity, never called unbound
   const getContext = Canvas.prototype.getContext;
   const canvases = [document.createElement('canvas'), new OffscreenCanvas(4, 4), new Canvas(4, 4), createCanvas(4, 4)];
   const contexts = canvases.map((canvas) => canvas.getContext('webgl2')!);
   try {
     expect(contexts.every(Boolean)).toBe(true);
-    await teardown(globalThis);
+    teardown(globalThis);
     expect(contexts.map((context) => (context as unknown as { _destroyed: boolean })._destroyed)).toEqual([
       true,
       true,
       true,
       true,
     ]);
+    // oxlint-disable-next-line typescript/unbound-method -- Canvas.prototype.getContext is patched/compared by identity, never called unbound
     expect(Canvas.prototype.getContext).toBe(original);
     expect(() => getContext.call(canvases[0]! as Canvas, 'webgl2')).toThrow(/torn down/);
   } finally {
     canvases.forEach((canvas) => (canvas as unknown as Canvas).dispose());
-    await teardown(globalThis);
+    teardown(globalThis);
   }
 });
 
@@ -154,7 +157,7 @@ it('cancels pending animation frames and prevents stale frame loops after teardo
   const callback = vi.fn();
   try {
     frame(callback);
-    await teardown(globalThis);
+    teardown(globalThis);
     vi.advanceTimersByTime(100);
     expect(callback).not.toHaveBeenCalled();
     frame(callback);
@@ -162,7 +165,7 @@ it('cancels pending animation frames and prevents stale frame loops after teardo
     expect(callback).not.toHaveBeenCalled();
     expect(vi.getTimerCount()).toBe(0);
   } finally {
-    await teardown(globalThis);
+    teardown(globalThis);
     vi.useRealTimers();
   }
 });
@@ -178,8 +181,8 @@ it('preserves existing contexts and host animation frame functions', async () =>
     const { teardown } = environment.setup(globalThis, {});
     expect(canvas.getContext('webgl2')).toBe(context);
     expect(globalThis.requestAnimationFrame).toBe(frame);
-    await teardown(globalThis);
-    expect(context._destroyed).toBe(false);
+    teardown(globalThis);
+    expect((context as unknown as { _destroyed: boolean })._destroyed).toBe(false);
     expect(globalThis.cancelAnimationFrame).toBe(cancel);
   } finally {
     canvas.dispose();
@@ -203,7 +206,7 @@ it('runs and cancels frames using the configured interval', async () => {
     expect(canceled).not.toHaveBeenCalled();
     expect(vi.getTimerCount()).toBe(0);
   } finally {
-    await teardown(globalThis);
+    teardown(globalThis);
     vi.useRealTimers();
   }
 });
@@ -214,22 +217,24 @@ it('restores the parent canvas wrapper after nested teardown and makes teardown 
   const parent = canvas.getContext('webgl2')!;
   const second = environment.setup(globalThis, {});
   const child = createCanvas(4, 4).getContext('webgl2')!;
-  await second.teardown(globalThis);
-  await second.teardown(globalThis);
-  expect(child._destroyed).toBe(true);
-  expect(parent._destroyed).toBe(false);
+  second.teardown(globalThis);
+  second.teardown(globalThis);
+  expect((child as unknown as { _destroyed: boolean })._destroyed).toBe(true);
+  expect((parent as unknown as { _destroyed: boolean })._destroyed).toBe(false);
   const later = createCanvas(4, 4).getContext('webgl2')!;
-  await first.teardown(globalThis);
-  expect(parent._destroyed).toBe(true);
-  expect(later._destroyed).toBe(true);
+  first.teardown(globalThis);
+  expect((parent as unknown as { _destroyed: boolean })._destroyed).toBe(true);
+  expect((later as unknown as { _destroyed: boolean })._destroyed).toBe(true);
 });
 
 it('restores the canvas prototype when DOM installation fails', () => {
+  // oxlint-disable-next-line typescript/unbound-method -- Canvas.prototype.getContext is patched/compared by identity, never called unbound
   const original = Canvas.prototype.getContext;
   const window = Object.freeze({ addEventListener: undefined });
   Object.defineProperty(globalThis, 'window', { value: window, configurable: true });
   try {
     expect(() => environment.setup(globalThis, {})).toThrow(TypeError);
+    // oxlint-disable-next-line typescript/unbound-method -- Canvas.prototype.getContext is patched/compared by identity, never called unbound
     expect(Canvas.prototype.getContext).toBe(original);
     expect(globalThis.window).toBe(window);
     expect(globalThis.document).toBeUndefined();
