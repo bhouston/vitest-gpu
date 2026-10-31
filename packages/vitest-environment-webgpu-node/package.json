@@ -54,7 +54,7 @@
     "tsc": "tsc"
   },
   "dependencies": {
-    "webgpu": "^0.6.1"
+    "webgpu": "^0.6.2"
   },
   "peerDependencies": {
     "typescript": ">=6",

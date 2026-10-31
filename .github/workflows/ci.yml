@@ -32,7 +32,7 @@ jobs:
           persist-credentials: false
       - if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libegl1 libgles2 libgl1-mesa-dri mesa-vulkan-drivers
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node }}
@@ -89,7 +89,7 @@ jobs:
         with:
           persist-credentials: false
       - run: sudo apt-get update && sudo apt-get install -y libegl1 libgles2 libgl1-mesa-dri mesa-vulkan-drivers
-      - uses: pnpm/action-setup@v5
+      - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
@@ -97,10 +97,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - name: Override the workspace to vitest ${{ matrix.vitest }}
-        # A pnpm override (not `pnpm add -D -w`) so every workspace member -- including demo/package.json's
+        # Appends to the trailing `overrides:` block of pnpm-workspace.yaml (keep it last). A pnpm override (not `pnpm add -D -w`) so every workspace member -- including demo/package.json's
         # own pinned vitest devDependency -- resolves the matrix version, not just the root.
         run: |
-          printf 'overrides:\n  vitest: "%s"\n  "@vitest/coverage-v8": "%s"\n' "$V" "$V" >> pnpm-workspace.yaml
+          printf '  vitest: "%s"\n  "@vitest/coverage-v8": "%s"\n' "$V" "$V" >> pnpm-workspace.yaml
           pnpm install --no-frozen-lockfile
         env:
           V: ${{ matrix.vitest }}
