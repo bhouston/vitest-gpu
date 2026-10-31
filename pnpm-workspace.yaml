@@ -10,3 +10,5 @@ minimumReleaseAgeExclude:
   - '@vitest/mocker'
   - '@vitest/spy'
   - vitest
+overrides:
+  '@modelcontextprotocol/server': ^2.3.0

@@ -55,8 +55,8 @@
     "tsc": "tsc && tsc -p tsconfig.type-tests.json"
   },
   "dependencies": {
-    "pixelmatch": "^7.1.0",
-    "sharp": "^0.35.4"
+    "pixelmatch": "^7.2.0",
+    "sharp": "^0.35.5"
   },
   "peerDependencies": {
     "vitest": ">=4 <6"
