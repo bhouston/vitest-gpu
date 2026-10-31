@@ -56,6 +56,9 @@
   "dependencies": {
     "webgpu": "^0.6.2"
   },
+  "devDependencies": {
+    "typescript": "7.1.0-beta"
+  },
   "peerDependencies": {
     "typescript": ">=6",
     "vitest": ">=4 <6"
