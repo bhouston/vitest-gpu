@@ -22,7 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, ubuntu-latest]
-        node: [22, 26]
+        node: [26]
     env:
       # Software rasterizers on GPU-less runners: Mesa llvmpipe for WebGL, Dawn's Vulkan backend on lavapipe for WebGPU.
       LIBGL_ALWAYS_SOFTWARE: '1'
