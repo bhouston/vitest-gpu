@@ -9,6 +9,8 @@ it('creates WebGL 1 and WebGL 2 contexts', () => {
   expect(gl2).toBeInstanceOf(WebGL2RenderingContext);
   const info = gl2!.getExtension('WEBGL_debug_renderer_info');
   console.log('WebGL renderer:', gl2!.getParameter(info!.UNMASKED_RENDERER_WEBGL));
+  // Software renderers are fine on GPU-less CI (llvmpipe, WARP), but never SwiftShader.
+  expect(gl2!.getParameter(info!.UNMASKED_RENDERER_WEBGL)).not.toMatch(/swiftshader/i);
   expect(gl2!.getParameter(gl2!.VERSION)).toMatch(/^WebGL 2/);
   expect(gl2!.getParameter(gl2!.MAX_TEXTURE_SIZE)).toBeGreaterThanOrEqual(2048);
   const gl1 = document.createElement('canvas').getContext('webgl');

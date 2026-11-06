@@ -96,8 +96,8 @@ machines. Use a tolerance such as `allowedMismatchedPixelRatio` for baselines sh
   export LIBGL_ALWAYS_SOFTWARE=1
   ```
 
-- **Windows:** the WebGL backend ships prebuilt Windows binaries (Direct3D 11) according to its
-  [upstream docs](https://github.com/RenaudRohlinger/node-webgl#platforms), but this repo's CI does not run on Windows.
+- **Windows** uses Direct3D for both WebGL and WebGPU, with the WARP software adapter on GPU-less machines. CI runs
+  `windows-latest`.
 
 ## What it is useful for
 

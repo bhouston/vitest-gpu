@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { basename, dirname, extname, isAbsolute, join } from 'node:path';
 import pixelmatch from 'pixelmatch';
 import sharp, { type FormatEnum } from 'sharp';
@@ -88,7 +89,11 @@ const raw = ({ width, height, data }: RgbaImage) => sharp(data, { raw: { width, 
 
 /** Decodes any format sharp reads (png, jpg, gif, webp, ...) into RGBA8. */
 const readImage = async (file: string): Promise<RgbaImage> => {
-  const { data, info } = await sharp(file).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  // Decode from a buffer: sharp(path) leaves the handle in libvips' cache, which locks the file on Windows.
+  const { data, info } = await sharp(await readFile(file))
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
   return { width: info.width, height: info.height, data };
 };
 

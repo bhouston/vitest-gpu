@@ -66,10 +66,9 @@ Dawn in Node.
 ## Supported versions and platforms
 
 - Vitest 4 and 5 (CI tests both). Vitest 3 is not supported.
-- Node 22 or later. CI runs Node 22 and 26 on `macos-latest` and `ubuntu-latest`.
+- Node 22 or later. CI runs Node 22 and 26 on `macos-latest`, `ubuntu-latest` and `windows-latest`.
 - Type checking needs TypeScript 6 or later (see [TypeScript types](#typescript-types)).
-- Linux without a GPU needs Mesa's software Vulkan driver, see [Linux and CI](#linux-and-ci). This repo's CI does
-  not run on Windows.
+- Linux without a GPU needs Mesa's software Vulkan driver, see [Linux and CI](#linux-and-ci).
 
 ## Useful for
 
