@@ -3,6 +3,7 @@
   <a href="https://www.npmtrends.com/vitest-environment-webgl-node"><img src="https://img.shields.io/npm/dw/vitest-environment-webgl-node.svg" alt="npm downloads"></a>
   <a href="https://codecov.io/gh/bhouston/vitest-gpu"><img src="https://codecov.io/gh/bhouston/vitest-gpu/branch/main/graph/badge.svg" alt="coverage"></a>
   <a href="https://discord.gg/fwupDN493R"><img src="https://img.shields.io/badge/chat-discord-blue?style=flat&logo=discord" alt="discord chat"></a>
+  <a href="https://vitest-gpu.ben3d.ca/"><img src="https://img.shields.io/badge/docs-read-blue?style=flat" alt="documentation"></a>
 </p>
 <br/>
 
@@ -22,6 +23,8 @@ in a browser, see the [blog post](https://ben3d.ca/blog/native-gpu-testing-for-v
 Powered by [`@onirenaud/node-webgl`](https://github.com/RenaudRohlinger/node-webgl) (Chrome's ANGLE, statically linked).
 
 Part of [vitest-gpu](https://github.com/bhouston/vitest-gpu), which also provides WebGPU and image snapshot packages.
+
+[Read the Docs to Learn More](https://vitest-gpu.ben3d.ca/docs/webgl/) about the WebGL environment: what it installs, its options, TypeScript types for the globals and CI setup.
 
 ```sh
 pnpm add -D vitest vitest-environment-webgl-node
@@ -55,7 +58,7 @@ the `WebGL*` classes and a file-reading `fetch()` before each test file, and rem
 
 Using Jest instead? See the equivalent
 [`jest-environment-webgl-node`](https://github.com/bhouston/jest-gpu/tree/main/packages/jest-environment-webgl-node)
-in [jest-gpu](https://github.com/bhouston/jest-gpu).
+in [jest-gpu](https://github.com/bhouston/jest-gpu), documented at [jest-gpu.ben3d.ca](https://jest-gpu.ben3d.ca/).
 
 ## Stability
 

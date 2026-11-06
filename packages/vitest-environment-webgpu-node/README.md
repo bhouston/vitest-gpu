@@ -3,6 +3,7 @@
   <a href="https://www.npmtrends.com/vitest-environment-webgpu-node"><img src="https://img.shields.io/npm/dw/vitest-environment-webgpu-node.svg" alt="npm downloads"></a>
   <a href="https://codecov.io/gh/bhouston/vitest-gpu"><img src="https://codecov.io/gh/bhouston/vitest-gpu/branch/main/graph/badge.svg" alt="coverage"></a>
   <a href="https://discord.gg/fwupDN493R"><img src="https://img.shields.io/badge/chat-discord-blue?style=flat&logo=discord" alt="discord chat"></a>
+  <a href="https://vitest-gpu.ben3d.ca/"><img src="https://img.shields.io/badge/docs-read-blue?style=flat" alt="documentation"></a>
 </p>
 <br/>
 
@@ -21,6 +22,8 @@ Headless GPU testing for CI: `navigator.gpu` is backed by Google's Dawn through 
 running the same tests in a browser, see the [blog post](https://ben3d.ca/blog/native-gpu-testing-for-vitest-and-jest).
 
 Part of [vitest-gpu](https://github.com/bhouston/vitest-gpu), which also provides WebGL and image snapshot packages.
+
+[Read the Docs to Learn More](https://vitest-gpu.ben3d.ca/docs/webgpu/) about the WebGPU environment: Dawn options, TypeScript types, the headless canvas and CI setup.
 
 ```sh
 pnpm add -D vitest vitest-environment-webgpu-node
@@ -50,7 +53,7 @@ The environment puts `navigator.gpu` and every `GPU*` class and constant (`GPUBu
 
 Using Jest instead? See the equivalent
 [`jest-environment-webgpu-node`](https://github.com/bhouston/jest-gpu/tree/main/packages/jest-environment-webgpu-node)
-in [jest-gpu](https://github.com/bhouston/jest-gpu).
+in [jest-gpu](https://github.com/bhouston/jest-gpu), documented at [jest-gpu.ben3d.ca](https://jest-gpu.ben3d.ca/).
 
 ## Compared to alternatives
 

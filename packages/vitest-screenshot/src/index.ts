@@ -10,7 +10,14 @@ import { resolveScreenshotUpdateState } from './update-policy.js';
 export type { Metric, MetricsOptions } from './metrics.js';
 
 /** Anything with RGBA8 pixels, top row first: `ImageData`, node-webgl's `canvas.getImageData()`, or a WebGPU readback. */
-export type RgbaImage = { width: number; height: number; data: Uint8Array | Uint8ClampedArray };
+export type RgbaImage = {
+  /** Width in pixels. */
+  width: number;
+  /** Height in pixels. */
+  height: number;
+  /** RGBA8 bytes, four per pixel, row by row from the top. */
+  data: Uint8Array | Uint8ClampedArray;
+};
 
 /**
  * A source of pixels: an `RgbaImage` / `ImageData`, a WebGPU `HeadlessCanvas` (`readPixels()`), a node-webgl
@@ -18,17 +25,41 @@ export type RgbaImage = { width: number; height: number; data: Uint8Array | Uint
  */
 export type ImageSource =
   | RgbaImage
-  | { readPixels(): Promise<RgbaImage> }
-  | { getImageData(): RgbaImage }
-  | { decode(): Promise<void> };
+  | {
+      /** Reads the pixels back from the GPU, as the WebGPU environment's `HeadlessCanvas` does. */
+      readPixels(): Promise<RgbaImage>;
+    }
+  | {
+      /** Returns the canvas pixels synchronously, as node-webgl's `Canvas` does. */
+      getImageData(): RgbaImage;
+    }
+  | {
+      /** Decodes the image so its pixels can be read, as node-webgl's `Image` does. */
+      decode(): Promise<void>;
+    };
 
 /** A baseline: a file path with extension (relative to `baselineDir` or absolute), or an in-memory `ImageSource`. */
 export type Reference = string | ImageSource;
 
 /** What a comparator returns, as in Vitest browser mode: `diff` is written next to the baseline on failure. */
-export type ComparatorResult = { pass: boolean; diff: RgbaImage | null; message: string | null };
+export type ComparatorResult = {
+  /** Whether the two images count as the same. */
+  pass: boolean;
+  /** An image of the differences, written as `<name>.diff.png` on failure, or `null` for none. */
+  diff: RgbaImage | null;
+  /** A description of the result, included in the failure message. */
+  message: string | null;
+};
 
-/** A comparator, with the signature Vitest browser mode uses for `comparators`. */
+/**
+ * A comparator, with the signature Vitest browser mode uses for `comparators`.
+ *
+ * @typeParam Options - The comparator's own options, taken from `comparatorOptions`.
+ * @param reference - The baseline image.
+ * @param actual - The image under test.
+ * @param options - The comparator options plus `createDiff`, which says whether a diff image is wanted.
+ * @returns Whether the images match, with an optional diff image and message.
+ */
 export type Comparator<Options extends object = Record<string, unknown>> = (
   reference: RgbaImage,
   actual: RgbaImage,
@@ -45,7 +76,9 @@ export type PixelmatchOptions = NonNullable<Parameters<typeof pixelmatch>[5]> & 
 
 /** Comparator names and their options. Augment this interface when registering a custom comparator. */
 export interface ComparatorRegistry {
+  /** Options of the default `pixelmatch` comparator. */
   pixelmatch: PixelmatchOptions;
+  /** Options of the `metrics` comparator. */
   metrics: MetricsOptions;
 }
 
@@ -56,12 +89,20 @@ type ComparatorOptions<Name extends ComparatorName> = Extract<ComparatorRegistry
 export type ComparatorSelection =
   | {
       [Name in ComparatorName]: {
+        /** The registered comparator to use. */
         comparatorName: Name;
+        /** Options for that comparator. */
         comparatorOptions?: ComparatorOptions<Name>;
       };
     }[ComparatorName]
-  | { comparatorName?: undefined; comparatorOptions?: ComparatorOptions<ComparatorName> };
+  | {
+      /** Omitted: the comparator chosen in `extendMatchers()` applies, or `pixelmatch` by default. */
+      comparatorName?: undefined;
+      /** Options for the default comparator. */
+      comparatorOptions?: ComparatorOptions<ComparatorName>;
+    };
 
+/** Options for one `toMatchScreenshot()` assertion: the comparator selection plus where baselines live. */
 export type ScreenshotOptions = ComparatorSelection & {
   /** Directory relative reference paths and diff images live in. Default: `__screenshots__` beside the test file. */
   baselineDir?: string;
@@ -71,6 +112,7 @@ export type ScreenshotOptions = ComparatorSelection & {
 
 /** Defaults for every assertion plus custom comparators, like `test.browser.expect.toMatchScreenshot` in Vitest config. */
 export type ScreenshotConfig = ComparatorSelection & {
+  /** Custom comparators, keyed by the name used in `comparatorName`. */
   comparators?: { [Name in ComparatorName]?: Comparator<ComparatorOptions<Name>> };
 };
 
@@ -135,6 +177,11 @@ export const pixelmatchComparator: Comparator<PixelmatchOptions> = (
   };
 };
 
+/**
+ * Registers `toMatchScreenshot()` on Vitest's `expect`. Call it once per test file, or from a setup file.
+ *
+ * @param config - Default comparator and options for every assertion, and any custom comparators.
+ */
 export function extendMatchers(config: ScreenshotConfig = {}): void {
   const comparators = {
     pixelmatch: pixelmatchComparator,

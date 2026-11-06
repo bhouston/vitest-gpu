@@ -1,0 +1,53 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["../vitest-environment-webgl-node", "../vitest-environment-webgpu-node", "../vitest-screenshot"],
+  "out": "docs/api",
+  "plugin": ["typedoc-plugin-markdown"],
+  "name": "API reference",
+  "readme": "none",
+  "outputFileStrategy": "modules",
+  "hidePageHeader": true,
+  "hideBreadcrumbs": true,
+  "sort": ["source-order"],
+  "excludePrivate": true,
+  "excludeInternal": true,
+  "disableSources": true,
+  "groupOrder": ["Functions", "Classes", "*"],
+  "interfacePropertiesFormat": "table",
+  "parametersFormat": "table",
+  "typeDeclarationFormat": "table",
+  "useCodeBlocks": true,
+  "excludeExternals": true,
+  "packagesRequiringDocumentation": [
+    "vitest-environment-webgl-node",
+    "vitest-environment-webgpu-node",
+    "vitest-screenshot"
+  ],
+  "validation": {
+    "notDocumented": true
+  },
+  "requiredToBeDocumented": [
+    "Enum",
+    "EnumMember",
+    "Variable",
+    "Function",
+    "Class",
+    "Interface",
+    "Constructor",
+    "Property",
+    "Method",
+    "CallSignature",
+    "Parameter",
+    "TypeParameter",
+    "Accessor",
+    "TypeAlias"
+  ],
+  "treatValidationWarningsAsErrors": true,
+  "entryFileName": "index",
+  "entryPointStrategy": "packages",
+  "packageOptions": {
+    "entryPoints": ["src/index.ts"],
+    "tsconfig": "tsconfig.build.json",
+    "readme": "none"
+  }
+}
