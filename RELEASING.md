@@ -56,3 +56,7 @@ The three packages release in lockstep at one version. Each package's tarball is
 ### Required Checks
 
 The `main` protection requires `ci (macos-latest, Node 22)`, `ci (macos-latest, Node 26)`, `ci (ubuntu-latest, Node 22)`, `ci (ubuntu-latest, Node 26)`, `contribution`, `vitest 4 compatibility` and `vitest 5 compatibility`. Repository rules must allow the Actions token to create `v*` tags.
+
+### Website
+
+The Release workflow calls `pages.yml` after each published release. It builds `packages/docs` from the new `v<version>` tag and deploys with the built-in `GITHUB_TOKEN`. Dry runs and runs that publish nothing do not deploy, and merges to `main` do not deploy. To redeploy the latest release, run `gh workflow run pages.yml --ref main` (optionally with `-f ref=v<version>`). Pages must use **GitHub Actions** as its source. See `packages/docs/README.md`.
