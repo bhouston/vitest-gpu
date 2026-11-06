@@ -4,7 +4,7 @@ import Layout from '@theme/Layout';
 
 const workflow = [
   ['Install', 'Add an environment package next to Vitest'],
-  ['Configure', 'Set environment to webgl-node or webgpu-node'],
+  ['Configure', 'Set environment to webgpu-node or webgl-node'],
   ['Render', 'Draw to a canvas on a real GPU in Node'],
   ['Compare', 'Match the pixels to a committed baseline'],
 ];
@@ -17,16 +17,16 @@ const cards = [
     body: 'Install the WebGL environment, configure Vitest and run a test that clears a canvas to red.',
   },
   {
-    name: 'WebGL',
-    label: 'WebGL 1 and 2 through ANGLE',
-    href: '/docs/webgl/',
-    body: 'What the environment installs, its options, and running three.js and Babylon.js unchanged.',
-  },
-  {
     name: 'WebGPU',
     label: 'navigator.gpu through Dawn',
     href: '/docs/webgpu/',
     body: 'Dawn options, TypeScript types and a headless canvas for WebGPU renderers.',
+  },
+  {
+    name: 'WebGL',
+    label: 'WebGL 1 and 2 through ANGLE',
+    href: '/docs/webgl/',
+    body: 'What the environment installs, its options, and running three.js and Babylon.js unchanged.',
   },
   {
     name: 'Screenshots',
@@ -52,21 +52,37 @@ const config = `// vitest.config.ts
 import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
-  test: { environment: 'webgl-node' },
+  test: { environment: 'webgpu-node' },
 });`;
 
-const test = `// gl.test.ts
+const test = `// gpu.test.ts
 import { expect, it } from 'vitest';
+import { createCanvas } from 'vitest-environment-webgpu-node';
 
-it('clears to red on a real GPU', () => {
-  const canvas = document.createElement('canvas');
-  canvas.width = canvas.height = 4;
-  const gl = canvas.getContext('webgl2')!;
-  gl.clearColor(1, 0, 0, 1);
-  gl.clear(gl.COLOR_BUFFER_BIT);
-  const pixel = new Uint8Array(4);
-  gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
-  expect([...pixel]).toEqual([255, 0, 0, 255]);
+it('clears to red on a real GPU', async () => {
+  const adapter = await navigator.gpu.requestAdapter();
+  const device = await adapter!.requestDevice();
+  const canvas = createCanvas(4, 4);
+  const context = canvas.getContext('webgpu');
+  context.configure({ device, format: 'rgba8unorm' });
+
+  const encoder = device.createCommandEncoder();
+  encoder
+    .beginRenderPass({
+      colorAttachments: [
+        {
+          view: context.getCurrentTexture().createView(),
+          loadOp: 'clear',
+          storeOp: 'store',
+          clearValue: [1, 0, 0, 1],
+        },
+      ],
+    })
+    .end();
+  device.queue.submit([encoder.finish()]);
+
+  const { data } = await canvas.readPixels();
+  expect([...data.slice(0, 4)]).toEqual([255, 0, 0, 255]);
 });`;
 
 const snapshot = `import { extendMatchers } from 'vitest-screenshot';
@@ -74,26 +90,26 @@ const snapshot = `import { extendMatchers } from 'vitest-screenshot';
 extendMatchers();
 
 it('renders a cube', async () => {
-  renderer.render(scene, camera);
+  await renderer.renderAsync(scene, camera);
   await expect(canvas).toMatchScreenshot('cube.png');
 });`;
 
 export default function Home() {
   return (
     <Layout
-      title="Real WebGL and WebGPU tests in Vitest"
-      description="Real WebGL and WebGPU tests in Vitest, with no browser: headless GPU environments for Node and a toMatchScreenshot() image matcher."
+      title="Real WebGPU and WebGL tests in Vitest"
+      description="Real WebGPU and WebGL tests in Vitest, with no browser: headless GPU environments for Node and a toMatchScreenshot() image matcher."
     >
       <header className="home-hero container">
         <div>
-          <p className="eyebrow">Vitest · WebGL · WebGPU · Open source</p>
+          <p className="eyebrow">Vitest · WebGPU · WebGL · Open source</p>
           <h1>
             Test your GPU code.
             <br />
             <em>Skip the browser.</em>
           </h1>
           <p className="hero-description">
-            Two Vitest environments put a real WebGL or WebGPU context on globalThis, and a matcher compares the pixels
+            Two Vitest environments put a real WebGPU or WebGL context on globalThis, and a matcher compares the pixels
             you read back with committed image baselines. Native GPU testing is up to 2.4x faster than a browser.
           </p>
           <div className="hero-actions">
@@ -106,7 +122,7 @@ export default function Home() {
           </div>
         </div>
         <figure className="hero-preview">
-          <CodeBlock language="typescript" title="A WebGL test in Node">
+          <CodeBlock language="typescript" title="A WebGPU test in Node">
             {test}
           </CodeBlock>
         </figure>
@@ -127,16 +143,16 @@ export default function Home() {
           <div>
             <p className="eyebrow">Real GPU, no mocks</p>
             <h2 id="gpu-title">
-              ANGLE for WebGL.
-              <br />
               Dawn for WebGPU.
+              <br />
+              ANGLE for WebGL.
             </h2>
             <p>
               The environments run in the Node process, so there is no browser to install or start. Your code gets real
-              drivers: Metal on macOS, Direct3D on Windows, and Mesa on Linux. three.js, Babylon.js and plain WebGL or
-              WebGPU code run unchanged.
+              drivers: Metal on macOS, Direct3D on Windows, and Mesa on Linux. three.js, Babylon.js and plain WebGPU or
+              WebGL code run unchanged.
             </p>
-            <Link to="/docs/webgl/">Read about the environments →</Link>
+            <Link to="/docs/webgpu/">Read about the environments →</Link>
           </div>
           <CodeBlock language="typescript" title="vitest.config.ts">
             {config}
@@ -180,7 +196,7 @@ export default function Home() {
           <div>
             <p className="eyebrow">Vitest 4 and 5 · Node.js 22+ · MIT</p>
             <h2>From first canvas to green CI.</h2>
-            <CodeBlock language="bash">pnpm add -D vitest vitest-environment-webgl-node</CodeBlock>
+            <CodeBlock language="bash">pnpm add -D vitest vitest-environment-webgpu-node</CodeBlock>
             <p>
               Using Jest? See <Link href="https://jest-gpu.ben3d.ca/">jest-gpu</Link>.
             </p>
