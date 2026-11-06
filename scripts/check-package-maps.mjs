@@ -26,6 +26,7 @@ try {
     const packed = spawnSync('npm', ['pack', '--ignore-scripts', '--json', '--pack-destination', archiveDirectory], {
       cwd: packageDirectory,
       encoding: 'utf8',
+      shell: process.platform === 'win32', // npm is npm.cmd on Windows, which needs a shell
     });
     assert.equal(packed.status, 0, packed.stderr || packed.stdout);
 

@@ -74,9 +74,9 @@ Breaking changes will be released as a new major version.
 ## Supported versions and platforms
 
 - Vitest 4 and 5 (CI tests both). Vitest 3 is not supported.
-- Node 22 or later. CI runs Node 22 and 26 on `macos-latest` and `ubuntu-latest`.
+- Node 22 or later. CI runs Node 22 and 26 on `macos-latest`, `ubuntu-latest` and `windows-latest`.
 - macOS uses Metal. Linux uses Mesa (see below). Windows uses Direct3D 11 per the
-  [node-webgl docs](https://github.com/RenaudRohlinger/node-webgl#platforms); this repo's CI does not run on Windows.
+  [node-webgl docs](https://github.com/RenaudRohlinger/node-webgl#platforms).
 
 ## Useful for
 
