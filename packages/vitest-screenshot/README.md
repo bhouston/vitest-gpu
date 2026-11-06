@@ -1,16 +1,27 @@
+<p align="center">
+  <a href="https://npmjs.com/package/vitest-screenshot"><img src="https://img.shields.io/npm/v/vitest-screenshot.svg" alt="npm package"></a>
+  <a href="https://www.npmtrends.com/vitest-screenshot"><img src="https://img.shields.io/npm/dw/vitest-screenshot.svg" alt="npm downloads"></a>
+  <a href="https://codecov.io/gh/bhouston/vitest-gpu"><img src="https://codecov.io/gh/bhouston/vitest-gpu/branch/main/graph/badge.svg" alt="coverage"></a>
+  <a href="https://discord.gg/fwupDN493R"><img src="https://img.shields.io/badge/chat-discord-blue?style=flat&logo=discord" alt="discord chat"></a>
+</p>
+<br/>
+
 # vitest-screenshot
 
-[![npm version][npm-badge]][npm-url]
-[![npm downloads][downloads-badge]][npm-url]
-[![Tests][tests-badge]][tests-url]
-[![Coverage][coverage-badge]][coverage-url]
-[![Discord][discord-badge]][discord-url]
+> Image snapshot testing for WebGL and WebGPU in Vitest.
 
-Image snapshot testing for WebGL and WebGPU in Vitest on Node, without a browser or Playwright.
+- 🖼️ Canvas, ImageData or Raw Pixels
+- 🔬 pixelmatch and Metrics Comparators
+- 🧪 Custom Comparators
+- 🩺 Diff Images on Failure
+- 📁 PNG, JPG, GIF and WebP Baselines
+
 `await expect(image).toMatchScreenshot(reference)` compares a canvas, `ImageData` or raw pixels against a
 baseline committed next to your tests, with the same options as Vitest browser mode's `toMatchScreenshot`.
 Pair it with a native GPU environment and tests run up to 2.4x faster than in a browser, see the
 [blog post](https://ben3d.ca/blog/native-gpu-testing-for-vitest-and-jest).
+
+Part of [vitest-gpu](https://github.com/bhouston/vitest-gpu), which also provides the WebGL and WebGPU environments.
 
 ```sh
 pnpm add -D vitest vitest-screenshot vitest-environment-webgl-node
@@ -212,20 +223,14 @@ See [`demo/test/screenshots`](https://github.com/bhouston/vitest-gpu/tree/main/d
   [`vitest-environment-webgpu-node`](https://github.com/bhouston/vitest-gpu/tree/main/packages/vitest-environment-webgpu-node) provide the canvases to compare.
 - [`demo/test/screenshots`](https://github.com/bhouston/vitest-gpu/tree/main/demo/test/screenshots) and the [repository README](https://github.com/bhouston/vitest-gpu#readme).
 
-## Author
+## Contribution
 
-Created by [Ben Houston](https://ben3d.ca) and sponsored by [Land of Assets](https://landofassets.com).
+See [Contributing Guide](https://github.com/bhouston/vitest-gpu/blob/main/CONTRIBUTING.md).
 
 ## License
 
 MIT
 
-[npm-badge]: https://img.shields.io/npm/v/vitest-screenshot.svg
-[npm-url]: https://www.npmjs.com/package/vitest-screenshot
-[downloads-badge]: https://img.shields.io/npm/dm/vitest-screenshot.svg
-[tests-badge]: https://github.com/bhouston/vitest-gpu/actions/workflows/ci.yml/badge.svg
-[tests-url]: https://github.com/bhouston/vitest-gpu/actions/workflows/ci.yml
-[discord-badge]: https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white
-[discord-url]: https://discord.gg/fwupDN493R
-[coverage-badge]: https://codecov.io/gh/bhouston/vitest-gpu/branch/main/graph/badge.svg
-[coverage-url]: https://codecov.io/gh/bhouston/vitest-gpu
+## Author
+
+[Ben Houston](https://ben3d.ca), Sponsored by [Land of Assets](https://landofassets.com).
