@@ -11,8 +11,10 @@
   "type": "module",
   "scripts": {
     "prepare": "husky",
-    "build": "pnpm -r --filter \"./packages/*\" build",
+    "build": "pnpm -r --filter \"./packages/*\" --filter \"!@vitest-gpu/docs\" build",
     "tsc": "pnpm -r tsc",
+    "docs:build": "pnpm --filter @vitest-gpu/docs build",
+    "docs:dev": "pnpm --filter @vitest-gpu/docs dev",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:types": "tsc -p packages/vitest-environment-webgpu-node/tsconfig.type-test.json && tsc -p packages/vitest-environment-webgl-node/tsconfig.type-test-node.json && tsc -p packages/vitest-environment-webgl-node/tsconfig.type-test-dom.json",
@@ -22,7 +24,7 @@
     "lint:fix": "oxlint --type-aware --type-check --fix .",
     "package:maps": "pnpm build && node scripts/check-package-maps.mjs",
     "release": "semantic-release",
-    "package:check": "pnpm package:maps && pnpm -r --filter \"./packages/*\" exec npm pack --dry-run --ignore-scripts",
+    "package:check": "pnpm package:maps && pnpm -r --filter \"./packages/*\" --filter \"!@vitest-gpu/docs\" exec npm pack --dry-run --ignore-scripts",
     "test:workflow": "node --test scripts/workflow.test.mjs"
   },
   "devDependencies": {

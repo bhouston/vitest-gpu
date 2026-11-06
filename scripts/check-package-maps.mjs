@@ -16,7 +16,11 @@ const findFiles = (directory) =>
 
 try {
   const packageDirectories = readdirSync(packagesDirectory, { withFileTypes: true })
-    .filter((entry) => entry.isDirectory() && existsSync(join(packagesDirectory, entry.name, 'package.json')))
+    .filter((entry) => {
+      const manifest = join(packagesDirectory, entry.name, 'package.json');
+      // The private docs site is not published, so it has no package maps to verify.
+      return entry.isDirectory() && existsSync(manifest) && !JSON.parse(readFileSync(manifest, 'utf8')).private;
+    })
     .map((entry) => join(packagesDirectory, entry.name));
 
   for (const packageDirectory of packageDirectories) {

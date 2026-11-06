@@ -64,9 +64,23 @@ const restore = (properties: SavedProperty[]): void => {
   }
 };
 
+/**
+ * The Vitest environment registered as `webgpu-node`. Before each test file it puts `navigator.gpu`, the `GPU*`
+ * classes and constants, and minimal `window`, `document`, `HTMLCanvasElement` and `requestAnimationFrame` shims
+ * on the global object (only where missing), and it removes them afterwards.
+ */
 export default {
+  /** The name Vitest uses to select this environment: `test.environment: 'webgpu-node'`. */
   name: 'webgpu-node',
+  /** Runs test files through Vite's `ssr` environment, as Node code. */
   viteEnvironment: 'ssr',
+  /**
+   * Creates the Dawn-backed `navigator.gpu` and installs the DOM shims on the test file's global object.
+   *
+   * @param global - The global object of the test file's context.
+   * @param __namedParameters - The environment options from the Vitest config; `webgpuNode` holds {@link WebgpuNodeOptions}.
+   * @returns A `teardown` hook that destroys the devices this environment created and restores the globals.
+   */
   setup(global: Record<string, unknown>, { webgpuNode = {} }: { webgpuNode?: WebgpuNodeOptions }) {
     const dom = domShims();
     // oxlint-disable-next-line typescript/no-misused-spread -- intentionally copies the own enumerable GPU* globals
@@ -128,6 +142,12 @@ export default {
       throw error;
     }
     return {
+      /**
+       * Destroys the GPU devices requested through this environment, cancels pending animation-frame callbacks and
+       * removes the globals that `setup` added.
+       *
+       * @param _global - Unused; teardown restores the global object it captured in `setup`.
+       */
       teardown: (_global?: Record<string, unknown>) => {
         if (disposed) return;
         try {

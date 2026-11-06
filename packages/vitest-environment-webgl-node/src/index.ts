@@ -91,9 +91,23 @@ const installFetch = (global: typeof globalThis, baseDir: string): void => {
   Object.defineProperty(global, 'fetch', { value: localFetch, writable: true, configurable: true });
 };
 
+/**
+ * The Vitest environment registered as `webgl-node`. Before each test file it installs node-webgl's `window`,
+ * `document`, `HTMLCanvasElement`, `Image`, `requestAnimationFrame` and `WebGL*` classes plus a file-reading
+ * `fetch()`, and it restores the original globals afterwards.
+ */
 export default {
+  /** The name Vitest uses to select this environment: `test.environment: 'webgl-node'`. */
   name: 'webgl-node',
+  /** Runs test files through Vite's `ssr` environment, as Node code. */
   viteEnvironment: 'ssr',
+  /**
+   * Installs the GL display and the DOM globals on the test file's global object.
+   *
+   * @param global - The global object of the test file's context.
+   * @param __namedParameters - The environment options from the Vitest config; `webglNode` holds {@link WebglNodeOptions}.
+   * @returns A `teardown` hook that destroys contexts and restores the globals this call changed.
+   */
   setup(global: typeof globalThis, { webglNode = {} }: { webglNode?: WebglNodeOptions }) {
     const { backend, api, ...dom } = webglNode;
     if (backend || api) {
@@ -184,6 +198,12 @@ export default {
     }
     const changed = changedProperties(before, global);
     return {
+      /**
+       * Destroys the WebGL contexts created during the test file, cancels pending animation-frame callbacks and
+       * restores the globals that `setup` replaced.
+       *
+       * @param g - The global object of the test file's context.
+       */
       teardown: (g: Record<string, unknown>) => {
         if (disposed) return;
         try {

@@ -4,6 +4,8 @@ packages:
 allowBuilds:
   '@onirenaud/node-webgl': true
   '@vgpu/adapter-node': false
+  core-js: false
+  esbuild: true
   webgpu: true
 minimumReleaseAgeExclude:
   - '@vitest/coverage-v8'
@@ -11,4 +13,6 @@ minimumReleaseAgeExclude:
   - '@vitest/spy'
   - vitest
 overrides:
+  serialize-javascript: ^7.0.3
+  tinypool: ^2.1.2
   '@modelcontextprotocol/server': ^2.3.0

@@ -7,3 +7,6 @@ publish
 **/__screenshots__/*.actual.png
 **/__screenshots__/*.diff.png
 .claude/
+packages/docs/build/
+packages/docs/.docusaurus/
+packages/docs/docs/api/

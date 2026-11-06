@@ -3,6 +3,7 @@ import type { Comparator, RgbaImage } from './index.js';
 /** ImageMagick `compare -metric` names. Upper bounds: AE PAE MAE MSE RMSE DSSIM. Lower bounds: PSNR SSIM. */
 export type Metric = 'AE' | 'PAE' | 'MAE' | 'MSE' | 'RMSE' | 'PSNR' | 'SSIM' | 'DSSIM';
 
+/** Options of the `metrics` comparator: error bounds named as in ImageMagick's `compare -metric`. Give any subset. */
 export type MetricsOptions = {
   /** ImageMagick `-fuzz`: per-channel RMS colour distance (0..1) within which two pixels count as equal. Default 0. */
   fuzz?: number;

@@ -1,0 +1,13 @@
+{
+  "name": "vitest-gpu",
+  "short_name": "vitest-gpu",
+  "description": "Real WebGL and WebGPU tests in Vitest, with no browser: headless GPU environments for Node and a toMatchScreenshot() image matcher.",
+  "start_url": ".",
+  "display": "browser",
+  "background_color": "#11151d",
+  "theme_color": "#11151d",
+  "icons": [
+    { "src": "img/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "img/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
