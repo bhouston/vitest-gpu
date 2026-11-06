@@ -211,7 +211,9 @@ The native GPU packages are real dependencies, so tests need a GPU or a software
 (Metal on macOS, Mesa llvmpipe on Linux). Coverage must stay at or above 95% for statements,
 branches, functions, and lines.
 
-See [`docs/releasing.md`](docs/releasing.md) for releases.
+## Releases
+
+See [RELEASING.md](RELEASING.md) for how releases are published and [GitHub Releases](https://github.com/bhouston/vitest-gpu/releases) for changes.
 
 ## Contribution
 
