@@ -1,18 +1,27 @@
+<p align="center">
+  <a href="https://npmjs.com/package/vitest-environment-webgl-node"><img src="https://img.shields.io/npm/v/vitest-environment-webgl-node.svg" alt="npm package"></a>
+  <a href="https://www.npmtrends.com/vitest-environment-webgl-node"><img src="https://img.shields.io/npm/dw/vitest-environment-webgl-node.svg" alt="npm downloads"></a>
+  <a href="https://codecov.io/gh/bhouston/vitest-gpu"><img src="https://codecov.io/gh/bhouston/vitest-gpu/branch/main/graph/badge.svg" alt="coverage"></a>
+  <a href="https://discord.gg/fwupDN493R"><img src="https://img.shields.io/badge/chat-discord-blue?style=flat&logo=discord" alt="discord chat"></a>
+</p>
+<br/>
+
 # vitest-environment-webgl-node
 
-[![npm version][npm-badge]][npm-url]
-[![npm downloads][downloads-badge]][npm-url]
-[![Tests][tests-badge]][tests-url]
-[![Coverage][coverage-badge]][coverage-url]
-[![Discord][discord-badge]][discord-url]
+> Real WebGL 1 and 2 tests in Vitest, with no browser.
 
-Run real WebGL 1 and WebGL 2 tests in Vitest on Node, without a browser, Playwright or canvas mocks.
-Headless GPU testing for CI: `canvas.getContext('webgl2')` returns a GPU-backed context, so three.js,
-regl, PixiJS and plain WebGL code run unchanged. Native GPU testing is up to 2.4x faster than running
-the same tests in a browser, see the
-[blog post](https://ben3d.ca/blog/native-gpu-testing-for-vitest-and-jest).
-Powered by [`@onirenaud/node-webgl`](https://github.com/RenaudRohlinger/node-webgl) (Chrome's ANGLE,
-statically linked).
+- 🖥️ Real WebGL 1 and 2
+- 🚫 No Browser or Mocks
+- 🧩 Runs three.js Unchanged
+- 🖼️ Pairs With vitest-screenshot
+- ⚡ Up to 2.4x Faster Than Browsers
+
+Headless GPU testing for CI: `canvas.getContext('webgl2')` returns a GPU-backed context, so three.js, regl,
+PixiJS and plain WebGL code run unchanged. Native GPU testing is up to 2.4x faster than running the same tests
+in a browser, see the [blog post](https://ben3d.ca/blog/native-gpu-testing-for-vitest-and-jest).
+Powered by [`@onirenaud/node-webgl`](https://github.com/RenaudRohlinger/node-webgl) (Chrome's ANGLE, statically linked).
+
+Part of [vitest-gpu](https://github.com/bhouston/vitest-gpu), which also provides WebGPU and image snapshot packages.
 
 ```sh
 pnpm add -D vitest vitest-environment-webgl-node
@@ -146,24 +155,18 @@ it('renders a cube', async () => {
 - [`demo/`](https://github.com/bhouston/vitest-gpu/tree/main/demo/test/webgl) for WebGL contexts, uploads, readbacks, three.js and Babylon.js tests, and the
   [repository README](https://github.com/bhouston/vitest-gpu#readme).
 
-## Author
+## Resource cleanup
 
-Created by [Ben Houston](https://ben3d.ca) and sponsored by [Land of Assets](https://landofassets.com).
+Environment teardown destroys contexts first created through `Canvas.getContext()` during the test file, including DOM canvases, `OffscreenCanvas` and imported canvas factories. It also cancels pending callbacks scheduled through its animation-frame shim. Contexts created directly with the WebGL context constructors, or before setup, remain the caller's responsibility: call `destroy()` on them. Dispose renderers and canvases during a long-running file to release resources sooner.
+
+## Contribution
+
+See [Contributing Guide](https://github.com/bhouston/vitest-gpu/blob/main/CONTRIBUTING.md).
 
 ## License
 
 MIT
 
-[npm-badge]: https://img.shields.io/npm/v/vitest-environment-webgl-node.svg
-[npm-url]: https://www.npmjs.com/package/vitest-environment-webgl-node
-[downloads-badge]: https://img.shields.io/npm/dm/vitest-environment-webgl-node.svg
-[tests-badge]: https://github.com/bhouston/vitest-gpu/actions/workflows/ci.yml/badge.svg
-[tests-url]: https://github.com/bhouston/vitest-gpu/actions/workflows/ci.yml
-[discord-badge]: https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white
-[discord-url]: https://discord.gg/fwupDN493R
-[coverage-badge]: https://codecov.io/gh/bhouston/vitest-gpu/branch/main/graph/badge.svg
-[coverage-url]: https://codecov.io/gh/bhouston/vitest-gpu
+## Author
 
-## Resource cleanup
-
-Environment teardown destroys contexts first created through `Canvas.getContext()` during the test file, including DOM canvases, `OffscreenCanvas` and imported canvas factories. It also cancels pending callbacks scheduled through its animation-frame shim. Contexts created directly with the WebGL context constructors, or before setup, remain the caller's responsibility: call `destroy()` on them. Dispose renderers and canvases during a long-running file to release resources sooner.
+[Ben Houston](https://ben3d.ca), Sponsored by [Land of Assets](https://landofassets.com).

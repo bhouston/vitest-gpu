@@ -1,20 +1,38 @@
+<p align="center">
+  <a href="https://npmjs.com/package/vitest-environment-webgpu-node"><img src="https://img.shields.io/npm/v/vitest-environment-webgpu-node.svg" alt="npm package"></a>
+  <a href="https://www.npmtrends.com/vitest-environment-webgpu-node"><img src="https://img.shields.io/npm/dw/vitest-environment-webgpu-node.svg" alt="npm downloads"></a>
+  <a href="https://codecov.io/gh/bhouston/vitest-gpu"><img src="https://codecov.io/gh/bhouston/vitest-gpu/branch/main/graph/badge.svg" alt="coverage"></a>
+  <a href="https://discord.gg/fwupDN493R"><img src="https://img.shields.io/badge/chat-discord-blue?style=flat&logo=discord" alt="discord chat"></a>
+</p>
+<br/>
+
 # vitest-gpu
 
-[![Tests][tests-badge]][tests-url]
-[![Coverage][coverage-badge]][coverage-url]
-[![Discord][discord-badge]][discord-url]
+> Real WebGL and WebGPU tests in Vitest, with no browser.
 
-Run real WebGL and WebGPU tests in Vitest on Node, without a browser, Playwright or canvas mocks.
-Headless GPU testing for CI: two Vitest environments put a GPU-backed context on `globalThis`, and a
-matcher diffs the pixels you read back against committed image baselines (png recommended; jpg, gif
-and webp also work). Native GPU testing is up to 2.4x faster than running the same tests in a browser,
-see the [blog post](https://ben3d.ca/blog/native-gpu-testing-for-vitest-and-jest).
+- 🖥️ Real GPU in Node
+- 🚫 No Browser or Mocks
+- 🎨 WebGL 1, 2 and WebGPU
+- 🖼️ Image Snapshot Matcher
+- ⚡ Up to 2.4x Faster Than Browsers
 
-| Package                                                                     | Provides                                                                   |
-| --------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| [`vitest-environment-webgl-node`](packages/vitest-environment-webgl-node)   | Headless WebGL 1 and 2 (ANGLE) with `window`, `document` and `canvas`      |
-| [`vitest-environment-webgpu-node`](packages/vitest-environment-webgpu-node) | Headless WebGPU (Google's Dawn) with `navigator.gpu` and a headless canvas |
-| [`vitest-screenshot`](packages/vitest-screenshot)                           | `toMatchScreenshot()` image-snapshot matcher for canvases and pixel data   |
+Headless GPU testing for CI: two Vitest environments put a GPU-backed context on `globalThis`, and a matcher
+diffs the pixels you read back against committed image baselines (png recommended; jpg, gif and webp also work).
+Native GPU testing is up to 2.4x faster than running the same tests in a browser, see the
+[blog post](https://ben3d.ca/blog/native-gpu-testing-for-vitest-and-jest).
+
+## Packages
+
+| Package                                                                     | Version (click for changelogs)                                                                                                                                          |
+| --------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`vitest-environment-webgpu-node`](packages/vitest-environment-webgpu-node) | [![vitest-environment-webgpu-node version](https://img.shields.io/npm/v/vitest-environment-webgpu-node.svg?label=%20)](https://github.com/bhouston/vitest-gpu/releases) |
+| [`vitest-environment-webgl-node`](packages/vitest-environment-webgl-node)   | [![vitest-environment-webgl-node version](https://img.shields.io/npm/v/vitest-environment-webgl-node.svg?label=%20)](https://github.com/bhouston/vitest-gpu/releases)   |
+| [`vitest-screenshot`](packages/vitest-screenshot)                           | [![vitest-screenshot version](https://img.shields.io/npm/v/vitest-screenshot.svg?label=%20)](https://github.com/bhouston/vitest-gpu/releases)                           |
+
+Each package does one job: `vitest-environment-webgl-node` is headless WebGL 1 and 2 (ANGLE) with `window`,
+`document` and `canvas`; `vitest-environment-webgpu-node` is headless WebGPU (Google's Dawn) with `navigator.gpu`
+and a headless canvas; `vitest-screenshot` is the `toMatchScreenshot()` image-snapshot matcher for canvases and
+pixel data.
 
 Using Jest instead? The equivalent packages live in [jest-gpu](https://github.com/bhouston/jest-gpu):
 [`jest-environment-webgpu-node`](https://github.com/bhouston/jest-gpu/tree/main/packages/jest-environment-webgpu-node)
@@ -193,23 +211,18 @@ The native GPU packages are real dependencies, so tests need a GPU or a software
 (Metal on macOS, Mesa llvmpipe on Linux). Coverage must stay at or above 95% for statements,
 branches, functions, and lines.
 
-Name branches `<type>/<issue-number>-<short-description>` (for example `feat/42-batch-export`).
-CI's PR policy check (`scripts/check-pr.mjs`) requires PRs to target `main` and reference the
-issue they close (`Closes #<issue>`).
+## Releases
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the full branch, commit and release workflow, and [`docs/releasing.md`](docs/releasing.md) for releases.
+See [RELEASING.md](RELEASING.md) for how releases are published and [GitHub Releases](https://github.com/bhouston/vitest-gpu/releases) for changes.
 
-## Author
+## Contribution
 
-Created by [Ben Houston](https://ben3d.ca) and sponsored by [Land of Assets](https://landofassets.com).
+See [Contributing Guide](CONTRIBUTING.md).
 
 ## License
 
 MIT
 
-[tests-badge]: https://github.com/bhouston/vitest-gpu/actions/workflows/ci.yml/badge.svg
-[tests-url]: https://github.com/bhouston/vitest-gpu/actions/workflows/ci.yml
-[coverage-badge]: https://codecov.io/gh/bhouston/vitest-gpu/branch/main/graph/badge.svg
-[coverage-url]: https://codecov.io/gh/bhouston/vitest-gpu
-[discord-badge]: https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white
-[discord-url]: https://discord.gg/fwupDN493R
+## Author
+
+[Ben Houston](https://ben3d.ca), Sponsored by [Land of Assets](https://landofassets.com).

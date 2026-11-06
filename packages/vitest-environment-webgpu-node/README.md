@@ -1,16 +1,26 @@
+<p align="center">
+  <a href="https://npmjs.com/package/vitest-environment-webgpu-node"><img src="https://img.shields.io/npm/v/vitest-environment-webgpu-node.svg" alt="npm package"></a>
+  <a href="https://www.npmtrends.com/vitest-environment-webgpu-node"><img src="https://img.shields.io/npm/dw/vitest-environment-webgpu-node.svg" alt="npm downloads"></a>
+  <a href="https://codecov.io/gh/bhouston/vitest-gpu"><img src="https://codecov.io/gh/bhouston/vitest-gpu/branch/main/graph/badge.svg" alt="coverage"></a>
+  <a href="https://discord.gg/fwupDN493R"><img src="https://img.shields.io/badge/chat-discord-blue?style=flat&logo=discord" alt="discord chat"></a>
+</p>
+<br/>
+
 # vitest-environment-webgpu-node
 
-[![npm version][npm-badge]][npm-url]
-[![npm downloads][downloads-badge]][npm-url]
-[![Tests][tests-badge]][tests-url]
-[![Coverage][coverage-badge]][coverage-url]
-[![Discord][discord-badge]][discord-url]
+> Real WebGPU tests in Vitest, with no browser.
 
-Run real WebGPU tests in Vitest on Node, without a browser, Playwright or mocks. Headless GPU testing
-for CI: `navigator.gpu` is backed by Google's Dawn through the
-[`webgpu`](https://github.com/dawn-gpu/node-webgpu) npm package. Native GPU testing is up to 2.4x faster
-than running the same tests in a browser, see the
-[blog post](https://ben3d.ca/blog/native-gpu-testing-for-vitest-and-jest).
+- 🖥️ Real WebGPU via Dawn
+- 🚫 No Browser or Mocks
+- 🧩 Headless Canvas Included
+- 🔧 Dawn Backend Options
+- ⚡ Up to 2.4x Faster Than Browsers
+
+Headless GPU testing for CI: `navigator.gpu` is backed by Google's Dawn through the
+[`webgpu`](https://github.com/dawn-gpu/node-webgpu) npm package. Native GPU testing is up to 2.4x faster than
+running the same tests in a browser, see the [blog post](https://ben3d.ca/blog/native-gpu-testing-for-vitest-and-jest).
+
+Part of [vitest-gpu](https://github.com/bhouston/vitest-gpu), which also provides WebGL and image snapshot packages.
 
 ```sh
 pnpm add -D vitest vitest-environment-webgpu-node
@@ -159,24 +169,18 @@ Call `extendMatchers()` from it once, then pass the canvas as in the example abo
 - [`demo/`](https://github.com/bhouston/vitest-gpu/tree/main/demo/test/webgpu) for device, upload, readback, triangle, three.js, Babylon Lite and vgpu tests,
   and the [repository README](https://github.com/bhouston/vitest-gpu#readme).
 
-## Author
+## Resource cleanup
 
-Created by [Ben Houston](https://ben3d.ca) and sponsored by [Land of Assets](https://landofassets.com).
+Environment teardown destroys devices requested through its `navigator.gpu` and cancels pending callbacks scheduled through its animation-frame shim. Device requests that finish after teardown are destroyed and rejected. Devices created through another GPU instance remain the caller's responsibility. Keep disposing renderers, buffers, textures and devices during long-running files to release resources sooner.
+
+## Contribution
+
+See [Contributing Guide](https://github.com/bhouston/vitest-gpu/blob/main/CONTRIBUTING.md).
 
 ## License
 
 MIT
 
-[npm-badge]: https://img.shields.io/npm/v/vitest-environment-webgpu-node.svg
-[npm-url]: https://www.npmjs.com/package/vitest-environment-webgpu-node
-[downloads-badge]: https://img.shields.io/npm/dm/vitest-environment-webgpu-node.svg
-[tests-badge]: https://github.com/bhouston/vitest-gpu/actions/workflows/ci.yml/badge.svg
-[tests-url]: https://github.com/bhouston/vitest-gpu/actions/workflows/ci.yml
-[discord-badge]: https://img.shields.io/badge/Discord-Join%20Chat-5865F2?logo=discord&logoColor=white
-[discord-url]: https://discord.gg/fwupDN493R
-[coverage-badge]: https://codecov.io/gh/bhouston/vitest-gpu/branch/main/graph/badge.svg
-[coverage-url]: https://codecov.io/gh/bhouston/vitest-gpu
+## Author
 
-## Resource cleanup
-
-Environment teardown destroys devices requested through its `navigator.gpu` and cancels pending callbacks scheduled through its animation-frame shim. Device requests that finish after teardown are destroyed and rejected. Devices created through another GPU instance remain the caller's responsibility. Keep disposing renderers, buffers, textures and devices during long-running files to release resources sooner.
+[Ben Houston](https://ben3d.ca), Sponsored by [Land of Assets](https://landofassets.com).
