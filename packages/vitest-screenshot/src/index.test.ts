@@ -56,8 +56,7 @@ beforeEach(() => {
 });
 afterEach(() => {
   vi.unstubAllEnvs();
-  // Windows can briefly hold files open after a test, which surfaces here as EPERM.
-  rmSync(dir, { recursive: true, force: true, maxRetries: 5 });
+  rmSync(dir, { recursive: true, force: true });
 });
 
 it('writes a missing baseline with an explicit update, then matches it', async () => {
